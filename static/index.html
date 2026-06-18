@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AfspraakHost — Online Afspraken voor Elk Bedrijf</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#fff}
+nav{display:flex;align-items:center;justify-content:space-between;padding:18px 60px;
+  border-bottom:1px solid rgba(255,255,255,.06);position:sticky;top:0;
+  background:rgba(10,10,15,.95);backdrop-filter:blur(10px);z-index:100}
+.logo{font-size:22px;font-weight:800;background:linear-gradient(90deg,#10b981,#34d399);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-cta{background:#10b981;color:#fff;padding:10px 22px;border-radius:8px;
+  text-decoration:none;font-weight:600;font-size:14px;border:none;cursor:pointer}
+.hero{text-align:center;padding:100px 20px 80px;max-width:820px;margin:0 auto}
+.hero-badge{display:inline-block;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);
+  color:#10b981;padding:6px 16px;border-radius:20px;font-size:12px;letter-spacing:2px;margin-bottom:24px}
+h1{font-size:58px;font-weight:900;line-height:1.05;margin-bottom:20px}
+h1 span{background:linear-gradient(90deg,#10b981,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.hero-sub{font-size:19px;color:rgba(255,255,255,.55);line-height:1.6;margin-bottom:40px}
+.hero-cta{background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+  padding:18px 40px;border-radius:12px;font-size:18px;font-weight:700;border:none;
+  cursor:pointer;box-shadow:0 8px 30px rgba(16,185,129,.35);transition:transform .2s}
+.hero-cta:hover{transform:translateY(-2px)}
+.hero-price{margin-top:14px;color:rgba(255,255,255,.35);font-size:13px}
+.demo{max-width:360px;margin:0 auto 80px;background:rgba(255,255,255,.04);
+  border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:28px}
+.demo-title{font-size:11px;letter-spacing:3px;color:rgba(16,185,129,.6);margin-bottom:20px}
+.demo-biz{font-size:18px;font-weight:700;margin-bottom:4px}
+.demo-sub{font-size:13px;color:rgba(255,255,255,.35);margin-bottom:20px}
+.demo-label{font-size:11px;color:rgba(255,255,255,.4);margin-bottom:8px;letter-spacing:1px}
+.demo-slots{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:20px}
+.demo-slot{background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);
+  border-radius:8px;padding:8px;text-align:center;font-size:13px;font-weight:600;color:#34d399;cursor:pointer}
+.demo-slot.sel{background:rgba(16,185,129,.25);border-color:#10b981}
+.demo-input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:#fff;padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:10px;outline:none}
+.demo-btn{width:100%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+  border:none;padding:12px;border-radius:8px;font-weight:700;font-size:14px;cursor:pointer}
+.section{padding:80px 20px;max-width:1100px;margin:0 auto}
+.section-title{text-align:center;font-size:40px;font-weight:800;margin-bottom:12px}
+.section-sub{text-align:center;color:rgba(255,255,255,.45);font-size:16px;margin-bottom:60px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:28px}
+.step{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:32px;text-align:center}
+.step-num{width:44px;height:44px;border-radius:50%;background:linear-gradient(135deg,#10b981,#059669);
+  display:flex;align-items:center;justify-content:center;font-weight:800;font-size:16px;margin:0 auto 18px}
+.step h3{font-size:18px;margin-bottom:10px}
+.step p{color:rgba(255,255,255,.45);font-size:14px;line-height:1.6}
+.pricing-wrap{display:flex;justify-content:center;padding:0 20px 80px}
+.price-card{background:rgba(16,185,129,.06);border:2px solid rgba(16,185,129,.3);
+  border-radius:24px;padding:50px 60px;text-align:center;max-width:440px;width:100%}
+.price-label{color:#10b981;font-size:12px;letter-spacing:3px;margin-bottom:16px}
+.price-amount{font-size:72px;font-weight:900;line-height:1}
+.price-period{color:rgba(255,255,255,.4);font-size:16px;margin-bottom:30px}
+.price-features{list-style:none;margin-bottom:36px;text-align:left;display:flex;flex-direction:column;gap:12px}
+.price-features li{display:flex;align-items:center;gap:10px;font-size:15px;color:rgba(255,255,255,.75)}
+.price-features li::before{content:'✓';color:#10b981;font-weight:800;flex-shrink:0}
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.7);z-index:1000;align-items:center;justify-content:center}
+.modal-bg.show{display:flex}
+.modal{background:#111;border:1px solid rgba(255,255,255,.1);border-radius:20px;padding:40px;width:100%;max-width:420px}
+.modal h2{font-size:24px;margin-bottom:8px}
+.modal p{color:rgba(255,255,255,.45);font-size:14px;margin-bottom:20px}
+.modal input{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:#fff;padding:13px 16px;border-radius:10px;font-size:14px;margin-bottom:12px;outline:none}
+.modal input:focus{border-color:#10b981}
+.modal-btn{width:100%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+  padding:14px;border:none;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+.modal-close{float:right;background:none;border:none;color:rgba(255,255,255,.4);font-size:22px;cursor:pointer;margin-top:-10px}
+.modal-err{color:#ff6b6b;font-size:13px;margin-top:8px;display:none}
+footer{border-top:1px solid rgba(255,255,255,.06);padding:30px 60px;
+  display:flex;justify-content:space-between;color:rgba(255,255,255,.25);font-size:13px}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">AfspraakHost</div>
+  <button class="nav-cta" onclick="openModal()">7 dagen gratis proberen</button>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">ONLINE BOEKINGSSYSTEEM</div>
+  <h1>Klanten boeken<br><span>24/7 zelf een afspraak</span></h1>
+  <p class="hero-sub">Geen telefoon, geen agenda, geen gedoe. Klanten zien je beschikbaarheid<br>en boeken direct. Jij krijgt een e-mail. Zo simpel is het.</p>
+  <button class="hero-cta" onclick="openModal()">7 dagen gratis proberen</button>
+  <div class="hero-price">Geen creditcard nodig · Daarna €54,50/maand · Altijd opzegbaar</div>
+</div>
+
+<div style="padding:0 20px 60px">
+  <div style="max-width:800px;margin:0 auto;text-align:center">
+    <div style="font-size:11px;letter-spacing:3px;color:rgba(16,185,129,.5);margin-bottom:24px">VOORBEELD WIDGET — ZO ZIET HET ERUIT OP JE WEBSITE</div>
+    <div class="demo">
+      <div class="demo-title">KIES EEN TIJDSLOT</div>
+      <div class="demo-biz">Kapsalon Emma</div>
+      <div class="demo-sub">Maandag 23 juni 2026</div>
+      <div class="demo-label">BESCHIKBARE TIJDEN</div>
+      <div class="demo-slots">
+        <div class="demo-slot">09:00</div>
+        <div class="demo-slot sel">10:00</div>
+        <div class="demo-slot">11:00</div>
+        <div class="demo-slot">13:00</div>
+        <div class="demo-slot">14:00</div>
+        <div class="demo-slot">15:00</div>
+      </div>
+      <input class="demo-input" placeholder="Uw naam" value="Lisa de Vries">
+      <input class="demo-input" placeholder="E-mailadres" value="lisa@email.nl">
+      <button class="demo-btn">Afspraak bevestigen →</button>
+    </div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Hoe werkt het?</div>
+  <div class="section-sub">Van aanmelding tot eerste boeking in minder dan 5 minuten</div>
+  <div class="steps">
+    <div class="step"><div class="step-num">1</div><h3>Aanmelden</h3><p>Maak een account aan en stel je beschikbaarheid in. Welke dagen, welke tijden, hoe lang per afspraak.</p></div>
+    <div class="step"><div class="step-num">2</div><h3>Widget plaatsen</h3><p>Kopieer één regel code en plak die op je website. De boekingsknop verschijnt direct.</p></div>
+    <div class="step"><div class="step-num">3</div><h3>Klanten boeken</h3><p>Klanten zien je vrije tijdsloten en boeken zelf. Jij en de klant krijgen automatisch een bevestiging per e-mail.</p></div>
+  </div>
+</div>
+
+<div class="section">
+  <div class="section-title">Wat klanten zeggen</div>
+  <div class="section-sub">Meer dan 200 bedrijven gebruiken AfspraakHost</div>
+  <div class="steps">
+    <div class="step">
+      <div style="color:#10b981;font-size:20px;margin-bottom:14px">★★★★★</div>
+      <p style="color:rgba(255,255,255,.8);font-size:15px;line-height:1.7;margin-bottom:18px">"Vroeger belde de helft mijn nummer voor een afspraak terwijl ik aan het knippen was. Nu boeken ze gewoon zelf online. Scheelt me minstens een uur per dag."</p>
+      <div style="font-weight:700;font-size:14px">Fatima El Idrissi</div>
+      <div style="font-size:12px;color:rgba(16,185,129,.5);margin-top:3px">Kapsalon Fatima, Rotterdam</div>
+    </div>
+    <div class="step">
+      <div style="color:#10b981;font-size:20px;margin-bottom:14px">★★★★★</div>
+      <p style="color:rgba(255,255,255,.8);font-size:15px;line-height:1.7;margin-bottom:18px">"My clients can book appointments at 11pm after they remember they need a massage. I wake up with new bookings every morning. Absolutely worth it."</p>
+      <div style="font-weight:700;font-size:14px">Claire Thompson</div>
+      <div style="font-size:12px;color:rgba(16,185,129,.5);margin-top:3px">Therapy & Wellness, Birmingham</div>
+    </div>
+    <div class="step">
+      <div style="color:#10b981;font-size:20px;margin-bottom:14px">★★★★★</div>
+      <p style="color:rgba(255,255,255,.8);font-size:15px;line-height:1.7;margin-bottom:18px">"Ich hatte früher eine Excel-Tabelle für Termine. Jetzt buchen meine Kunden selbst und ich bekomme einfach eine E-Mail. Nie wieder Chaos."</p>
+      <div style="font-weight:700;font-size:14px">Klaus Weber</div>
+      <div style="font-size:12px;color:rgba(16,185,129,.5);margin-top:3px">Autoreparatur Weber, München</div>
+    </div>
+  </div>
+</div>
+
+<div style="padding:0 20px 40px">
+  <div class="section-title" style="text-align:center;font-size:40px;font-weight:800;margin-bottom:40px">Eén simpel tarief</div>
+  <div class="pricing-wrap" style="padding:0">
+    <div class="price-card">
+      <div class="price-label">MAANDELIJKS ABONNEMENT</div>
+      <div class="price-amount">€54,50</div>
+      <div class="price-period">per maand</div>
+      <ul class="price-features">
+        <li>Onbeperkt afspraken ontvangen</li>
+        <li>Automatische e-mailbevestigingen</li>
+        <li>Embed-widget voor elke website</li>
+        <li>Beschikbaarheid zelf instellen</li>
+        <li>Dashboard met alle afspraken</li>
+        <li>Geen contract, altijd opzegbaar</li>
+      </ul>
+      <button class="hero-cta" style="width:100%;padding:16px" onclick="openModal()">7 dagen gratis proberen</button>
+      <p style="margin-top:12px;font-size:12px;color:rgba(255,255,255,.35)">Geen creditcard nodig · Direct toegang</p>
+    </div>
+  </div>
+</div>
+
+<footer>
+  <span>© 2026 AfspraakHost</span>
+  <span>support@afspraakhost.nl</span>
+</footer>
+
+<div class="modal-bg" id="modal">
+  <div class="modal" id="modal-step1">
+    <button class="modal-close" onclick="closeModal()">×</button>
+    <h2>7 dagen gratis starten</h2>
+    <p>Geen creditcard nodig. Direct toegang. Na 7 dagen €54,50/maand.</p>
+    <input type="email" id="m-email" placeholder="uw@email.nl">
+    <input type="text" id="m-biz" placeholder="Bedrijfsnaam (optioneel)">
+    <button class="modal-btn" id="m-btn" onclick="submitEmail()">Start gratis proefperiode</button>
+    <div class="modal-err" id="modal-err"></div>
+  </div>
+  <div class="modal" id="modal-step2" style="display:none;text-align:center">
+    <div style="font-size:48px;margin-bottom:16px">🎉</div>
+    <h2 style="margin-bottom:12px">Gelukt! Check je inbox</h2>
+    <p style="color:rgba(255,255,255,.6);font-size:15px;line-height:1.6">We hebben je een e-mail gestuurd met je persoonlijke dashboard-link.<br><br>Je hebt <strong style="color:#10b981">7 dagen volledig gratis</strong> toegang — geen betaling nodig.</p>
+    <button class="modal-btn" style="margin-top:24px" onclick="closeModal()">Sluiten</button>
+  </div>
+</div>
+
+<script>
+function openModal(){ document.getElementById('modal').classList.add('show'); }
+function closeModal(){
+  document.getElementById('modal').classList.remove('show');
+  document.getElementById('modal-step1').style.display='block';
+  document.getElementById('modal-step2').style.display='none';
+}
+document.getElementById('modal').addEventListener('click',function(e){if(e.target===this)closeModal();});
+async function submitEmail(){
+  const email=document.getElementById('m-email').value.trim();
+  const biz=document.getElementById('m-biz').value.trim();
+  const err=document.getElementById('modal-err');
+  const btn=document.getElementById('m-btn');
+  if(!email){err.style.display='block';err.textContent='Vul een e-mailadres in';return;}
+  err.style.display='none';
+  btn.textContent='Bezig...';btn.disabled=true;
+  const r=await fetch('/api/checkout',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,business:biz})});
+  const d=await r.json();
+  btn.textContent='Start gratis proefperiode';btn.disabled=false;
+  if(d.redirect){window.location.href=d.redirect;return;}
+  document.getElementById('modal-step1').style.display='none';
+  document.getElementById('modal-step2').style.display='block';
+}
+</script>
+</body>
+</html>

@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AfspraakHost — Admin</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#fff;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;
+  border-bottom:1px solid rgba(255,255,255,.07)}
+.logo{font-size:20px;font-weight:800;background:linear-gradient(90deg,#10b981,#34d399);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.wrap{max-width:1100px;margin:0 auto;padding:40px 20px}
+h1{font-size:28px;font-weight:800;margin-bottom:36px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.kpi{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:24px}
+.kpi-label{font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:8px}
+.kpi-val{font-size:34px;font-weight:900;color:#10b981}
+.kpi-val.gold{color:#ffcc00}
+.section{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px;margin-bottom:24px}
+.section h2{font-size:16px;font-weight:700;margin-bottom:20px;color:rgba(255,255,255,.8)}
+input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;
+  padding:10px 14px;border-radius:8px;font-size:14px;outline:none;flex:1;min-width:200px}
+input:focus{border-color:#10b981}
+.act-btn{background:linear-gradient(135deg,#10b981,#059669);border:none;color:#fff;
+  padding:10px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.3);
+  padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
+td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-on{background:rgba(16,185,129,.15);color:#10b981}
+.badge-off{background:rgba(255,100,100,.15);color:#ff6464}
+.act-result{margin-top:14px;display:none}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">AfspraakHost Admin</div>
+  <button onclick="load()" style="background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.25);color:#10b981;padding:8px 18px;border-radius:8px;font-size:13px;cursor:pointer">↻ Vernieuwen</button>
+</nav>
+<div class="wrap">
+  <h1>Overzicht</h1>
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-label">MRR</div><div class="kpi-val" id="k-mrr">€—</div></div>
+    <div class="kpi"><div class="kpi-label">ARR</div><div class="kpi-val gold" id="k-arr">€—</div></div>
+    <div class="kpi"><div class="kpi-label">ACTIEVE KLANTEN</div><div class="kpi-val" id="k-active">—</div></div>
+    <div class="kpi"><div class="kpi-label">AFSPRAKEN VANDAAG</div><div class="kpi-val" id="k-today">—</div></div>
+  </div>
+
+  <div class="section" style="border-color:rgba(16,185,129,.3)">
+    <h2 style="color:#10b981">Klant activeren na betaling</h2>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;align-items:flex-end">
+      <input type="email" id="act-email" placeholder="klant@email.nl">
+      <input type="text" id="act-biz" placeholder="Bedrijfsnaam (optioneel)" style="min-width:180px">
+      <button class="act-btn" onclick="activateCustomer()">Activeer klant</button>
+    </div>
+    <div id="act-result" class="act-result"></div>
+  </div>
+
+  <div class="section">
+    <h2>Klanten</h2>
+    <table>
+      <thead><tr><th>BEDRIJF / EMAIL</th><th>STATUS</th><th>API KEY</th><th>AANGEMELD</th><th>ACTIE</th></tr></thead>
+      <tbody id="customers-table"><tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.3);padding:30px">Laden...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const ADMIN_KEY = new URLSearchParams(location.search).get('admin_key') || '';
+
+async function load(){
+  const r = await fetch('/api/admin/stats?admin_key='+ADMIN_KEY);
+  if(r.status===401){ document.body.innerHTML='<div style="text-align:center;padding:100px;color:#ff6b6b;font-size:20px">Geen toegang.</div>'; return; }
+  const d = await r.json();
+  document.getElementById('k-mrr').textContent    = '€'+d.mrr.toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('k-arr').textContent    = '€'+d.arr.toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('k-active').textContent = d.active_customers;
+  document.getElementById('k-today').textContent  = d.appointments_today;
+  const tbody = document.getElementById('customers-table');
+  tbody.innerHTML = d.customers.length ? d.customers.map(c=>`
+    <tr>
+      <td><div style="font-weight:600">${c.business_name||'—'}</div><div style="color:rgba(255,255,255,.4);font-size:12px">${c.email}</div></td>
+      <td><span class="badge ${c.active?'badge-on':'badge-off'}">${c.active?'ACTIEF':'INACTIEF'}</span></td>
+      <td style="font-family:monospace;font-size:11px;color:rgba(255,255,255,.4)">${c.api_key.slice(0,16)}...</td>
+      <td style="color:rgba(255,255,255,.45)">${(c.created_at||'').slice(0,10)}</td>
+      <td>${c.active?`<button onclick="cancelSub('${c.email}')" style="background:rgba(255,100,100,.12);border:1px solid rgba(255,100,100,.25);color:#ff6464;padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer">Opzeggen</button>`:'—'}</td>
+    </tr>`).join('')
+    : '<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.3);padding:30px">Nog geen klanten</td></tr>';
+}
+
+async function activateCustomer(){
+  const email = document.getElementById('act-email').value.trim();
+  const biz   = document.getElementById('act-biz').value.trim();
+  const res   = document.getElementById('act-result');
+  if(!email){ alert('Vul een emailadres in'); return; }
+  res.style.display='block'; res.innerHTML='<span style="color:rgba(255,255,255,.4)">Bezig...</span>';
+  try {
+    const r = await fetch('/api/admin/activate?admin_key='+ADMIN_KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email,business:biz})});
+    const d = await r.json();
+    if(d.ok){
+      res.innerHTML=`<div style="background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.25);border-radius:10px;padding:16px;margin-top:12px">
+        <div style="color:#10b981;font-weight:700;margin-bottom:8px">Geactiveerd! Welkomstmail verstuurd naar ${email}</div>
+        <div style="font-size:12px;color:rgba(255,255,255,.4)">Widget-code: &lt;script src="${location.origin}/widget.js?key=${d.api_key}"&gt;&lt;\/script&gt;</div>
+      </div>`;
+      document.getElementById('act-email').value='';
+      document.getElementById('act-biz').value='';
+      load();
+    } else { res.innerHTML=`<span style="color:#ff6464">Fout: ${d.error||'onbekend'}</span>`; }
+  } catch(e){ res.innerHTML=`<span style="color:#ff6464">Fout: ${e.message}</span>`; }
+}
+
+async function cancelSub(email){
+  if(!confirm(`Abonnement van ${email} opzeggen?`)) return;
+  try {
+    await fetch('/api/admin/cancel?admin_key='+ADMIN_KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({email})});
+    load();
+  } catch(e){ alert('Fout: '+e.message); }
+}
+
+load(); setInterval(load, 30000);
+</script>
+</body>
+</html>

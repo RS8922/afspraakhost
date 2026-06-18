@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Afspraak maken</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#fff;min-height:100vh;
+  display:flex;align-items:center;justify-content:center;padding:20px}
+.widget{background:#111;border:1px solid rgba(255,255,255,.1);border-radius:20px;
+  padding:32px;width:100%;max-width:420px}
+.biz-name{font-size:20px;font-weight:800;margin-bottom:4px}
+.biz-sub{font-size:13px;color:rgba(255,255,255,.4);margin-bottom:24px}
+.step-label{font-size:10px;letter-spacing:3px;color:rgba(16,185,129,.6);margin-bottom:12px}
+.month-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.month-nav button{background:none;border:1px solid rgba(255,255,255,.1);color:rgba(255,255,255,.5);
+  width:32px;height:32px;border-radius:8px;cursor:pointer;font-size:16px}
+.month-nav span{font-weight:600;font-size:15px}
+.cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:20px}
+.cal-header{text-align:center;font-size:10px;color:rgba(255,255,255,.3);padding:4px}
+.cal-day{text-align:center;padding:8px 4px;border-radius:8px;font-size:13px;cursor:pointer;transition:.15s}
+.cal-day.empty{pointer-events:none}
+.cal-day.past{color:rgba(255,255,255,.15);pointer-events:none}
+.cal-day.avail{color:#fff;background:rgba(16,185,129,.1);border:1px solid rgba(16,185,129,.2)}
+.cal-day.avail:hover{background:rgba(16,185,129,.25)}
+.cal-day.sel{background:#10b981;color:#fff;border-color:#10b981}
+.cal-day.unavail{color:rgba(255,255,255,.2);pointer-events:none}
+.slots-wrap{margin-bottom:20px}
+.slots{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.slot{padding:9px;border-radius:8px;border:1px solid rgba(16,185,129,.25);background:rgba(16,185,129,.08);
+  text-align:center;font-size:13px;font-weight:600;color:#34d399;cursor:pointer;transition:.15s}
+.slot:hover{background:rgba(16,185,129,.2)}
+.slot.sel{background:#10b981;color:#fff;border-color:#10b981}
+.no-slots{color:rgba(255,255,255,.3);font-size:13px;text-align:center;padding:20px 0}
+.form-group{margin-bottom:12px}
+.form-group label{font-size:11px;color:rgba(255,255,255,.35);letter-spacing:1px;display:block;margin-bottom:5px}
+.form-group input,.form-group textarea{width:100%;background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:#fff;padding:10px 12px;border-radius:8px;font-size:14px;outline:none;font-family:inherit}
+.form-group input:focus,.form-group textarea:focus{border-color:#10b981}
+.form-group textarea{resize:none;height:70px}
+.book-btn{width:100%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;border:none;
+  padding:14px;border-radius:10px;font-size:15px;font-weight:700;cursor:pointer;margin-top:4px}
+.book-btn:disabled{opacity:.5;cursor:not-allowed}
+.err{color:#ff6b6b;font-size:13px;margin-top:8px}
+.success{text-align:center;padding:20px 0}
+.back-btn{background:none;border:1px solid rgba(255,255,255,.15);color:rgba(255,255,255,.5);
+  padding:8px 16px;border-radius:8px;font-size:13px;cursor:pointer;margin-bottom:20px}
+</style>
+</head>
+<body>
+<div class="widget">
+  <div class="biz-name" id="biz-name">Laden...</div>
+  <div class="biz-sub">Maak een afspraak</div>
+
+  <!-- Step 1: calendar -->
+  <div id="step-cal">
+    <div class="step-label">STAP 1 — KIES EEN DATUM</div>
+    <div class="month-nav">
+      <button onclick="prevMonth()">‹</button>
+      <span id="month-label"></span>
+      <button onclick="nextMonth()">›</button>
+    </div>
+    <div class="cal-grid" id="cal"></div>
+  </div>
+
+  <!-- Step 2: time slots -->
+  <div id="step-slots" style="display:none">
+    <button class="back-btn" onclick="showStep('cal')">← Andere datum</button>
+    <div class="step-label">STAP 2 — KIES EEN TIJDSTIP</div>
+    <div class="slots-wrap"><div class="slots" id="slots"></div></div>
+  </div>
+
+  <!-- Step 3: form -->
+  <div id="step-form" style="display:none">
+    <button class="back-btn" onclick="showStep('slots')">← Ander tijdstip</button>
+    <div class="step-label">STAP 3 — JE GEGEVENS</div>
+    <div id="selected-info" style="background:rgba(16,185,129,.08);border:1px solid rgba(16,185,129,.2);border-radius:8px;padding:12px;margin-bottom:16px;font-size:13px;color:#34d399"></div>
+    <div class="form-group"><label>NAAM *</label><input type="text" id="f-name" placeholder="Jouw naam"></div>
+    <div class="form-group"><label>EMAIL *</label><input type="email" id="f-email" placeholder="jouw@email.nl"></div>
+    <div class="form-group"><label>TELEFOON</label><input type="tel" id="f-phone" placeholder="+31 6 ..."></div>
+    <div class="form-group"><label>DIENST</label><input type="text" id="f-service" placeholder="Bijv. knipbeurt, massage, consult..."></div>
+    <div class="form-group"><label>OPMERKING</label><textarea id="f-note" placeholder="Optionele opmerking..."></textarea></div>
+    <button class="book-btn" id="book-btn" onclick="submitBooking()">Afspraak bevestigen</button>
+    <div class="err" id="book-err"></div>
+  </div>
+
+  <!-- Success -->
+  <div id="step-success" style="display:none">
+    <div class="success">
+      <div style="font-size:52px;margin-bottom:16px">✅</div>
+      <h2 style="margin-bottom:10px">Afspraak bevestigd!</h2>
+      <p style="color:rgba(255,255,255,.5);font-size:14px;line-height:1.6">Je ontvangt een bevestigingsmail.<br>Tot dan!</p>
+      <button class="book-btn" style="margin-top:24px" onclick="resetBooking()">Nog een afspraak</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const KEY = new URLSearchParams(location.search).get('key') || '';
+let cur = new Date(); cur.setDate(1);
+let selDate = null, selTime = null;
+const MONTHS = ['januari','februari','maart','april','mei','juni','juli','augustus','september','oktober','november','december'];
+const WDAYS  = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
+
+async function init(){
+  const cfg = await fetch('/api/config?key='+KEY).then(r=>r.json());
+  if(cfg.error){ document.getElementById('biz-name').textContent='Niet gevonden'; return; }
+  document.getElementById('biz-name').textContent = cfg.business_name || 'Afspraak maken';
+  renderCal();
+}
+
+function renderCal(){
+  document.getElementById('month-label').textContent =
+    MONTHS[cur.getMonth()] + ' ' + cur.getFullYear();
+  const first = new Date(cur.getFullYear(), cur.getMonth(), 1);
+  const last  = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+  const startDay = (first.getDay()+6)%7;
+  const today = new Date().toISOString().slice(0,10);
+  let html = WDAYS.map(d=>`<div class="cal-header">${d}</div>`).join('');
+  for(let i=0;i<startDay;i++) html+=`<div class="cal-day empty"></div>`;
+  for(let d=1;d<=last.getDate();d++){
+    const date = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    const isPast = date < today;
+    const isSel  = date === selDate;
+    html += `<div class="cal-day ${isPast?'past':'avail'} ${isSel?'sel':''}" onclick="pickDate('${date}')">${d}</div>`;
+  }
+  document.getElementById('cal').innerHTML = html;
+}
+
+async function pickDate(date){
+  selDate = date; selTime = null;
+  renderCal();
+  const slots = await fetch(`/api/slots?key=${KEY}&date=${date}`).then(r=>r.json());
+  const el = document.getElementById('slots');
+  el.innerHTML = slots.length
+    ? slots.map(t=>`<div class="slot" onclick="pickTime('${t}')">${t}</div>`).join('')
+    : '<div class="no-slots" style="grid-column:1/-1">Geen beschikbare tijden</div>';
+  showStep('slots');
+}
+
+function pickTime(t){
+  selTime = t;
+  document.querySelectorAll('.slot').forEach(s=>{
+    s.classList.toggle('sel', s.textContent===t);
+  });
+  const [y,m,d] = selDate.split('-');
+  document.getElementById('selected-info').textContent =
+    `📅 ${d}-${m}-${y} om ${t}`;
+  showStep('form');
+}
+
+async function submitBooking(){
+  const name    = document.getElementById('f-name').value.trim();
+  const email   = document.getElementById('f-email').value.trim();
+  const phone   = document.getElementById('f-phone').value.trim();
+  const service = document.getElementById('f-service').value.trim();
+  const note    = document.getElementById('f-note').value.trim();
+  const err     = document.getElementById('book-err');
+  const btn     = document.getElementById('book-btn');
+  if(!name||!email){ err.textContent='Vul naam en e-mail in'; return; }
+  err.textContent='';
+  btn.textContent='Bezig...'; btn.disabled=true;
+  const r = await fetch('/api/book?key='+KEY,{
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({name,email,phone,service,note,date:selDate,time:selTime})
+  });
+  const d = await r.json();
+  btn.textContent='Afspraak bevestigen'; btn.disabled=false;
+  if(d.ok){ showStep('success'); }
+  else { err.textContent = d.error || 'Er is iets misgegaan. Probeer opnieuw.'; }
+}
+
+function resetBooking(){
+  selDate=null; selTime=null;
+  ['f-name','f-email','f-phone','f-service','f-note'].forEach(id=>document.getElementById(id).value='');
+  showStep('cal'); renderCal();
+}
+
+function showStep(s){
+  ['cal','slots','form','success'].forEach(id=>{
+    document.getElementById('step-'+id).style.display = id===s?'block':'none';
+  });
+}
+
+function prevMonth(){ cur.setMonth(cur.getMonth()-1); renderCal(); }
+function nextMonth(){ cur.setMonth(cur.getMonth()+1); renderCal(); }
+
+init();
+</script>
+</body>
+</html>

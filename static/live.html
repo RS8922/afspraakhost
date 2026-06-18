@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AfspraakHost — Live Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#060b18;color:#fff;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 32px;
+  border-bottom:1px solid rgba(16,185,129,.1);background:rgba(6,11,24,.95);
+  position:sticky;top:0;z-index:10;backdrop-filter:blur(10px)}
+.logo{font-size:18px;font-weight:800;background:linear-gradient(90deg,#10b981,#34d399);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.live-dot{display:flex;align-items:center;gap:8px;font-size:11px;letter-spacing:2px;color:rgba(16,185,129,.6)}
+.dot{width:7px;height:7px;border-radius:50%;background:#28c864;animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.wrap{max-width:1100px;margin:0 auto;padding:32px 20px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:28px}
+.kpi{background:rgba(16,185,129,.05);border:1px solid rgba(16,185,129,.12);border-radius:16px;padding:24px}
+.kpi-lbl{font-size:10px;letter-spacing:3px;color:rgba(16,185,129,.5);margin-bottom:8px}
+.kpi-val{font-size:36px;font-weight:200;color:#10b981;letter-spacing:1px}
+.kpi-val.gold{color:#ffcc00}
+.kpi-sub{font-size:11px;color:rgba(255,255,255,.2);margin-top:4px}
+.card{background:rgba(255,255,255,.03);border:1px solid rgba(16,185,129,.08);border-radius:16px;padding:24px;margin-bottom:20px}
+.card-title{font-size:10px;letter-spacing:3px;color:rgba(16,185,129,.45);margin-bottom:20px}
+.chart-wrap{height:140px}
+canvas{width:100%;height:100%}
+table{width:100%;border-collapse:collapse}
+th{font-size:9px;letter-spacing:2px;color:rgba(16,185,129,.35);padding:8px 12px;border-bottom:1px solid rgba(16,185,129,.07);text-align:left}
+td{padding:11px 12px;border-bottom:1px solid rgba(16,185,129,.04);font-size:13px;color:rgba(220,235,255,.7)}
+td.name{color:#fff}
+.badge{display:inline-block;padding:2px 10px;border-radius:10px;font-size:10px;font-weight:600}
+.badge.on{background:rgba(16,185,129,.12);color:#10b981;border:1px solid rgba(16,185,129,.2)}
+.badge.off{background:rgba(255,100,100,.1);color:#ff6464;border:1px solid rgba(255,100,100,.15)}
+.updated{font-size:11px;color:rgba(255,255,255,.2);text-align:right;margin-top:12px}
+@media(max-width:700px){.kpis{grid-template-columns:repeat(2,1fr)}}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">AfspraakHost</div>
+  <div class="live-dot"><div class="dot"></div>LIVE</div>
+</nav>
+<div class="wrap">
+  <div class="kpis">
+    <div class="kpi"><div class="kpi-lbl">ACTIEVE KLANTEN</div><div class="kpi-val" id="k-active">-</div><div class="kpi-sub" id="k-total">- aangemeld</div></div>
+    <div class="kpi"><div class="kpi-lbl">MRR</div><div class="kpi-val" id="k-mrr">-</div><div class="kpi-sub">per maand</div></div>
+    <div class="kpi"><div class="kpi-lbl">ARR</div><div class="kpi-val gold" id="k-arr">-</div><div class="kpi-sub">per jaar</div></div>
+    <div class="kpi"><div class="kpi-lbl">AFSPRAKEN VANDAAG</div><div class="kpi-val" id="k-today">-</div><div class="kpi-sub" id="k-total-a">- totaal</div></div>
+  </div>
+  <div class="card">
+    <div class="card-title">AFSPRAKEN PER DAG</div>
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+  </div>
+  <div class="card">
+    <div class="card-title">KLANTEN</div>
+    <table>
+      <thead><tr><th>NAAM / EMAIL</th><th>STATUS</th><th>AANGEMELD</th></tr></thead>
+      <tbody id="customers"></tbody>
+    </table>
+  </div>
+  <div class="updated" id="updated"></div>
+</div>
+<script>
+const KEY = new URLSearchParams(location.search).get('admin_key') || '';
+async function load(){
+  const r = await fetch('/api/live-stats?admin_key='+KEY);
+  if(r.status===401){ document.body.innerHTML='<div style="text-align:center;padding:100px;color:#ff6b6b">Geen toegang.</div>'; return; }
+  const d = await r.json();
+  document.getElementById('k-active').textContent = d.active;
+  document.getElementById('k-total').textContent  = d.total + ' aangemeld';
+  document.getElementById('k-mrr').textContent    = '€'+d.mrr.toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('k-arr').textContent    = '€'+d.arr.toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});
+  document.getElementById('k-today').textContent  = d.appointments_today;
+  document.getElementById('k-total-a').textContent = d.appointments_total + ' totaal';
+  document.getElementById('updated').textContent  = 'Bijgewerkt: ' + new Date().toLocaleTimeString('nl-NL');
+  const cv = document.getElementById('chart');
+  const cx = cv.getContext('2d');
+  const W = cv.offsetWidth; const H = cv.offsetHeight;
+  cv.width=W; cv.height=H; cx.clearRect(0,0,W,H);
+  const days = d.chart||[];
+  if(days.length){
+    const max=Math.max(...days.map(x=>x.count),1);
+    const pad=8; const bw=Math.floor((W-pad*(days.length+1))/days.length);
+    days.forEach((day,i)=>{
+      const x=pad+i*(bw+pad); const bh=Math.floor((day.count/max)*(H-28)); const y=H-bh-16;
+      const g=cx.createLinearGradient(0,y,0,H-16);
+      g.addColorStop(0,'rgba(16,185,129,.9)'); g.addColorStop(1,'rgba(16,185,129,.1)');
+      cx.fillStyle=g; cx.fillRect(x,y,bw,bh);
+      cx.shadowColor='rgba(16,185,129,.8)'; cx.shadowBlur=8;
+      cx.fillStyle='rgba(52,211,153,.9)'; cx.fillRect(x,y,bw,2); cx.shadowBlur=0;
+      cx.fillStyle='rgba(16,185,129,.4)'; cx.font='8px Segoe UI'; cx.textAlign='center';
+      cx.fillText((day.date||'').slice(5),x+bw/2,H-4);
+      if(day.count>0){cx.fillStyle='rgba(52,211,153,.8)';cx.font='9px Segoe UI';cx.fillText(day.count,x+bw/2,y-4);}
+    });
+  }
+  document.getElementById('customers').innerHTML = d.customers.length
+    ? d.customers.map(c=>`<tr><td class="name">${c.name}</td><td><span class="badge ${c.active?'on':'off'}">${c.active?'ACTIEF':'INACTIEF'}</span></td><td style="color:rgba(255,255,255,.3);font-size:11px">${c.date||'-'}</td></tr>`).join('')
+    : '<tr><td colspan="3" style="text-align:center;color:rgba(255,255,255,.2);padding:30px">Nog geen klanten</td></tr>';
+}
+load(); setInterval(load,30000);
+</script>
+</body>
+</html>

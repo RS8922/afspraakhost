@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AfspraakHost — Dashboard</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#fff;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:16px 40px;
+  border-bottom:1px solid rgba(255,255,255,.07)}
+.logo{font-size:20px;font-weight:800;background:linear-gradient(90deg,#10b981,#34d399);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.wrap{max-width:1000px;margin:0 auto;padding:40px 20px}
+h1{font-size:26px;font-weight:800;margin-bottom:8px}
+.sub{color:rgba(255,255,255,.4);font-size:14px;margin-bottom:32px}
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:16px;margin-bottom:32px}
+.card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:22px}
+.card-label{font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.3);margin-bottom:8px}
+.card-val{font-size:30px;font-weight:900;color:#10b981}
+.section{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px;margin-bottom:24px}
+.section h2{font-size:16px;font-weight:700;margin-bottom:20px;color:rgba(255,255,255,.8)}
+.embed-box{background:rgba(0,0,0,.3);border:1px solid rgba(16,185,129,.2);border-radius:10px;
+  padding:16px;font-family:monospace;font-size:12px;color:#34d399;word-break:break-all;position:relative}
+.copy-btn{position:absolute;top:10px;right:10px;background:rgba(16,185,129,.15);
+  border:1px solid rgba(16,185,129,.3);color:#10b981;padding:5px 12px;border-radius:6px;font-size:11px;cursor:pointer}
+.avail-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;margin-bottom:20px}
+.day-col{text-align:center}
+.day-name{font-size:10px;color:rgba(255,255,255,.35);letter-spacing:1px;margin-bottom:8px}
+.day-toggle{width:100%;padding:8px 4px;border-radius:8px;border:1px solid rgba(255,255,255,.1);
+  background:rgba(255,255,255,.04);color:rgba(255,255,255,.3);font-size:11px;cursor:pointer;transition:.2s}
+.day-toggle.on{background:rgba(16,185,129,.15);border-color:rgba(16,185,129,.4);color:#10b981}
+.time-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;align-items:center;margin-top:12px;padding:12px;
+  background:rgba(255,255,255,.03);border-radius:8px;border:1px solid rgba(255,255,255,.06)}
+.time-row label{font-size:11px;color:rgba(255,255,255,.35)}
+.time-row input,select{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);
+  color:#fff;padding:7px 10px;border-radius:6px;font-size:13px;outline:none;width:100%}
+.save-btn{background:linear-gradient(135deg,#10b981,#059669);border:none;color:#fff;
+  padding:10px 24px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;margin-top:16px}
+table{width:100%;border-collapse:collapse}
+th{text-align:left;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.3);
+  padding:10px 12px;border-bottom:1px solid rgba(255,255,255,.06)}
+td{padding:12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+.badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
+.badge-ok{background:rgba(16,185,129,.15);color:#10b981}
+.badge-cancel{background:rgba(255,100,100,.12);color:#ff6464}
+.inactive-screen{display:none;text-align:center;padding:80px 20px}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">AfspraakHost</div>
+  <span id="nav-biz" style="color:rgba(255,255,255,.4);font-size:14px"></span>
+</nav>
+<div id="inactive-screen" class="inactive-screen">
+  <div style="font-size:48px;margin-bottom:16px">⏸</div>
+  <h2 style="margin-bottom:12px">Account niet actief</h2>
+  <p style="color:rgba(255,255,255,.4)">Je proefperiode is verlopen of je account is nog niet actief.<br>
+  Maak €54,50 over naar <strong>NL26 REVO 1741 4708 03</strong> (R. Spronken)<br>
+  met je e-mailadres als omschrijving.</p>
+</div>
+<div class="wrap" id="main-wrap" style="display:none">
+  <h1>Dashboard</h1>
+  <p class="sub" id="dash-sub">Beheer je afspraken en beschikbaarheid</p>
+
+  <div class="cards">
+    <div class="card"><div class="card-label">AFSPRAKEN VANDAAG</div><div class="card-val" id="stat-today">—</div></div>
+    <div class="card"><div class="card-label">DEZE WEEK</div><div class="card-val" id="stat-week">—</div></div>
+    <div class="card"><div class="card-label">TOTAAL</div><div class="card-val" id="stat-total">—</div></div>
+  </div>
+
+  <div class="section">
+    <h2>Boekingswidget — kopieer dit naar uw website</h2>
+    <div class="embed-box" id="embed-code">
+      &lt;script src="…/widget.js?key=LADEN…"&gt;&lt;/script&gt;
+      <button class="copy-btn" onclick="copyEmbed()">Kopiëren</button>
+    </div>
+    <p style="margin-top:10px;font-size:12px;color:rgba(255,255,255,.3)">
+      Plak deze regel net voor de &lt;/body&gt; tag. De boekingsknop verschijnt automatisch.
+    </p>
+  </div>
+
+  <div class="section">
+    <h2>Beschikbaarheid instellen</h2>
+    <p style="font-size:13px;color:rgba(255,255,255,.35);margin-bottom:16px">Klik op een dag om die aan of uit te zetten. Stel daarna de tijden in.</p>
+    <div class="avail-grid" id="avail-grid"></div>
+    <div id="avail-times"></div>
+    <button class="save-btn" onclick="saveAvailability()">Opslaan</button>
+    <span id="avail-msg" style="margin-left:12px;font-size:13px;color:#10b981;display:none">✓ Opgeslagen!</span>
+  </div>
+
+  <div class="section">
+    <h2>Komende afspraken</h2>
+    <table>
+      <thead><tr><th>KLANT</th><th>DIENST</th><th>DATUM & TIJD</th><th>STATUS</th><th></th></tr></thead>
+      <tbody id="apt-table"><tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.3);padding:30px">Laden...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+const KEY = new URLSearchParams(location.search).get('key') || '';
+const DAYS = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
+let availability = [];
+
+async function load(){
+  try {
+    const [cfg, apts, avail] = await Promise.all([
+      fetch('/api/config?key='+KEY).then(r=>r.json()),
+      fetch('/api/appointments?key='+KEY).then(r=>r.json()),
+      fetch('/api/availability?key='+KEY).then(r=>r.json()),
+    ]);
+    if(cfg.error){ document.getElementById('inactive-screen').style.display='block'; return; }
+    document.getElementById('main-wrap').style.display='block';
+    document.getElementById('nav-biz').textContent = cfg.business_name || cfg.email;
+    document.getElementById('embed-code').innerHTML =
+      `&lt;script src="${location.origin}/widget.js?key=${KEY}"&gt;&lt;\/script&gt;<button class="copy-btn" onclick="copyEmbed()">Kopiëren</button>`;
+    const now = new Date().toISOString().slice(0,10);
+    const weekStart = getWeekStart();
+    const today  = apts.filter(a=>a.date===now && a.status!=='cancelled').length;
+    const week   = apts.filter(a=>a.date>=weekStart && a.status!=='cancelled').length;
+    const total  = apts.filter(a=>a.status!=='cancelled').length;
+    document.getElementById('stat-today').textContent = today;
+    document.getElementById('stat-week').textContent  = week;
+    document.getElementById('stat-total').textContent = total;
+    availability = avail;
+    renderAvailability(avail);
+    const upcoming = apts.filter(a=>a.date>=now && a.status!=='cancelled')
+                         .sort((a,b)=>a.date>b.date?1:a.date<b.date?-1:a.time>b.time?1:-1);
+    const tbody = document.getElementById('apt-table');
+    tbody.innerHTML = upcoming.length ? upcoming.map(a=>`
+      <tr>
+        <td><div style="font-weight:600">${a.customer_name}</div><div style="color:rgba(255,255,255,.35);font-size:12px">${a.customer_email}</div></td>
+        <td style="color:rgba(255,255,255,.5)">${a.service||'—'}</td>
+        <td><div>${a.date}</div><div style="color:#10b981;font-size:13px">${a.time}</div></td>
+        <td><span class="badge badge-ok">Bevestigd</span></td>
+        <td><button onclick="cancelApt(${a.id})" style="background:rgba(255,100,100,.1);border:1px solid rgba(255,100,100,.2);color:#ff6464;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer">Annuleer</button></td>
+      </tr>`).join('')
+      : '<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.3);padding:30px">Geen komende afspraken</td></tr>';
+  } catch(e){ document.getElementById('inactive-screen').style.display='block'; }
+}
+
+function getWeekStart(){
+  const d = new Date(); d.setDate(d.getDate() - d.getDay() + 1);
+  return d.toISOString().slice(0,10);
+}
+
+function renderAvailability(avail){
+  const active = new Set(avail.map(a=>a.weekday));
+  const grid = document.getElementById('avail-grid');
+  grid.innerHTML = DAYS.map((d,i)=>`
+    <div class="day-col">
+      <div class="day-name">${d}</div>
+      <button class="day-toggle ${active.has(i)?'on':''}" onclick="toggleDay(${i})" id="day-${i}">${active.has(i)?'Aan':'Uit'}</button>
+    </div>`).join('');
+  renderTimes(avail);
+}
+
+function renderTimes(avail){
+  const times = document.getElementById('avail-times');
+  const active = avail.map(a=>a.weekday);
+  if(!active.length){ times.innerHTML=''; return; }
+  times.innerHTML = avail.map(a=>`
+    <div class="time-row" id="tr-${a.weekday}">
+      <div><label>${DAYS[a.weekday]}</label><input type="time" id="start-${a.weekday}" value="${a.start_time}"></div>
+      <div><label>Tot</label><input type="time" id="end-${a.weekday}" value="${a.end_time}"></div>
+      <div><label>Slot (min)</label><select id="dur-${a.weekday}">
+        ${[15,30,45,60,90,120].map(m=>`<option value="${m}" ${a.slot_duration==m?'selected':''}>${m} min</option>`).join('')}
+      </select></div>
+    </div>`).join('');
+}
+
+function toggleDay(i){
+  const btn = document.getElementById('day-'+i);
+  const on  = btn.classList.toggle('on');
+  btn.textContent = on ? 'Aan' : 'Uit';
+  if(on){ availability.push({weekday:i,start_time:'09:00',end_time:'17:00',slot_duration:60}); }
+  else  { availability = availability.filter(a=>a.weekday!==i); }
+  availability.sort((a,b)=>a.weekday-b.weekday);
+  renderTimes(availability);
+}
+
+async function saveAvailability(){
+  const slots = availability.map(a=>({
+    weekday: a.weekday,
+    start_time: document.getElementById('start-'+a.weekday)?.value || a.start_time,
+    end_time:   document.getElementById('end-'+a.weekday)?.value   || a.end_time,
+    slot_duration: parseInt(document.getElementById('dur-'+a.weekday)?.value || a.slot_duration),
+  }));
+  await fetch('/api/availability?key='+KEY,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({slots})});
+  availability = slots;
+  const msg = document.getElementById('avail-msg');
+  msg.style.display='inline'; setTimeout(()=>msg.style.display='none',2000);
+}
+
+async function cancelApt(id){
+  if(!confirm('Afspraak annuleren?')) return;
+  await fetch(`/api/appointments/${id}/cancel?key=${KEY}`,{method:'POST'});
+  load();
+}
+
+function copyEmbed(){
+  navigator.clipboard.writeText(`<script src="${location.origin}/widget.js?key=${KEY}"><\/script>`);
+  event.target.textContent='Gekopieerd!'; setTimeout(()=>event.target.textContent='Kopiëren',2000);
+}
+
+load();
+</script>
+</body>
+</html>
