@@ -115,12 +115,25 @@ def send_welcome_email(email, api_key, business_name, trial=False):
     msg['From']    = gmail
     msg['To']      = email
     msg.attach(MIMEText(body, 'html'))
-    try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as s:
-            s.login(gmail, pwd)
-            s.sendmail(gmail, email, msg.as_string())
-    except Exception as e:
-        print(f'[EMAIL ERROR] {e}')
+    import threading
+    def _send():
+        for attempt in range(3):
+            try:
+                try:
+                    with smtplib.SMTP('smtp.gmail.com', 587, timeout=15) as s:
+                        s.ehlo(); s.starttls(); s.ehlo()
+                        s.login(gmail, pwd)
+                        s.sendmail(gmail, email, msg.as_string())
+                        print(f'[EMAIL OK] {email}'); return
+                except Exception:
+                    with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15) as s:
+                        s.login(gmail, pwd)
+                        s.sendmail(gmail, email, msg.as_string())
+                        print(f'[EMAIL OK] {email}'); return
+            except Exception as e:
+                import time; time.sleep(2)
+        print(f'[EMAIL FAIL] {email}')
+    threading.Thread(target=_send, daemon=True).start()
 
 def send_appointment_email(business_email, customer_name, customer_email, date, time, service, business_name, api_key):
     gmail = os.getenv('GMAIL_ADDRESS', '')
@@ -168,13 +181,27 @@ def send_appointment_email(business_email, customer_name, customer_email, date, 
     msg_cust['From']    = gmail
     msg_cust['To']      = customer_email
     msg_cust.attach(MIMEText(body_cust, 'html'))
-    try:
-        with smtplib.SMTP_SSL('smtp.gmail.com', 465) as s:
-            s.login(gmail, pwd)
-            s.sendmail(gmail, business_email, msg_biz.as_string())
-            s.sendmail(gmail, customer_email, msg_cust.as_string())
-    except Exception as e:
-        print(f'[EMAIL ERROR] {e}')
+    import threading
+    def _send():
+        for attempt in range(3):
+            try:
+                try:
+                    with smtplib.SMTP('smtp.gmail.com', 587, timeout=15) as s:
+                        s.ehlo(); s.starttls(); s.ehlo()
+                        s.login(gmail, pwd)
+                        s.sendmail(gmail, business_email, msg_biz.as_string())
+                        s.sendmail(gmail, customer_email, msg_cust.as_string())
+                        print(f'[EMAIL OK] biz+klant'); return
+                except Exception:
+                    with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15) as s:
+                        s.login(gmail, pwd)
+                        s.sendmail(gmail, business_email, msg_biz.as_string())
+                        s.sendmail(gmail, customer_email, msg_cust.as_string())
+                        print(f'[EMAIL OK] biz+klant'); return
+            except Exception as e:
+                import time; time.sleep(2)
+        print(f'[EMAIL FAIL] afspraak emails')
+    threading.Thread(target=_send, daemon=True).start()
 
 # ── Static pages ───────────────────────────────────────────
 @app.route('/')
