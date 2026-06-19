@@ -225,6 +225,13 @@ def live():
 def book():
     return send_from_directory('static', 'book.html')
 
+@app.route('/widget.js')
+def widget_js():
+    response = app.make_response(send_from_directory('static', 'widget.js'))
+    response.headers['Content-Type'] = 'application/javascript'
+    response.headers['Access-Control-Allow-Origin'] = '*'
+    return response
+
 # ── Checkout ───────────────────────────────────────────────
 @app.route('/api/checkout', methods=['POST'])
 def checkout():
