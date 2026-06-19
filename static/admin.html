@@ -12,12 +12,17 @@ nav{display:flex;align-items:center;justify-content:space-between;padding:16px 4
 .logo{font-size:20px;font-weight:800;background:linear-gradient(90deg,#10b981,#34d399);
   -webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .wrap{max-width:1100px;margin:0 auto;padding:40px 20px}
-h1{font-size:28px;font-weight:800;margin-bottom:36px}
-.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+h1{font-size:28px;font-weight:800;margin-bottom:6px}
+.sub{color:rgba(255,255,255,.4);font-size:14px;margin-bottom:36px}
+.kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:20px}
+.kpis2{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
 .kpi{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);border-radius:14px;padding:24px}
 .kpi-label{font-size:11px;letter-spacing:2px;color:rgba(255,255,255,.35);margin-bottom:8px}
 .kpi-val{font-size:34px;font-weight:900;color:#10b981}
 .kpi-val.gold{color:#ffcc00}
+.kpi-val.orange{color:#ff9f43}
+.kpi-val.purple{color:#a78bff}
+.kpi-val.blue{color:#4f8fff}
 .section{background:rgba(255,255,255,.03);border:1px solid rgba(255,255,255,.07);border-radius:16px;padding:28px;margin-bottom:24px}
 .section h2{font-size:16px;font-weight:700;margin-bottom:20px;color:rgba(255,255,255,.8)}
 input{background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.1);color:#fff;
@@ -29,9 +34,12 @@ table{width:100%;border-collapse:collapse}
 th{text-align:left;font-size:10px;letter-spacing:2px;color:rgba(255,255,255,.3);
   padding:10px 14px;border-bottom:1px solid rgba(255,255,255,.06)}
 td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
+tr:hover td{background:rgba(255,255,255,.02)}
 .badge{display:inline-block;padding:3px 10px;border-radius:12px;font-size:11px;font-weight:600}
 .badge-on{background:rgba(16,185,129,.15);color:#10b981}
+.badge-trial{background:rgba(255,159,67,.15);color:#ff9f43;border:1px solid rgba(255,159,67,.25)}
 .badge-off{background:rgba(255,100,100,.15);color:#ff6464}
+.click-dot{display:inline-block;width:8px;height:8px;border-radius:50%;background:#10b981;margin-right:5px}
 .act-result{margin-top:14px;display:none}
 </style>
 </head>
@@ -42,10 +50,19 @@ td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13p
 </nav>
 <div class="wrap">
   <h1>Overzicht</h1>
+  <p class="sub" id="last-refresh">Laden...</p>
+
   <div class="kpis">
     <div class="kpi"><div class="kpi-label">MRR</div><div class="kpi-val" id="k-mrr">€—</div></div>
     <div class="kpi"><div class="kpi-label">ARR</div><div class="kpi-val gold" id="k-arr">€—</div></div>
-    <div class="kpi"><div class="kpi-label">ACTIEVE KLANTEN</div><div class="kpi-val" id="k-active">—</div></div>
+    <div class="kpi"><div class="kpi-label">ACTIEF BETAALD</div><div class="kpi-val" id="k-active">—</div></div>
+    <div class="kpi"><div class="kpi-label">IN PROEFPERIODE</div><div class="kpi-val orange" id="k-trial">—</div></div>
+  </div>
+
+  <div class="kpis2">
+    <div class="kpi"><div class="kpi-label">EMAILS VERSTUURD</div><div class="kpi-val blue" id="k-emails">—</div></div>
+    <div class="kpi"><div class="kpi-label">LINK GEKLIKT</div><div class="kpi-val purple" id="k-clicks">—</div></div>
+    <div class="kpi"><div class="kpi-label">CLICK RATE</div><div class="kpi-val purple" id="k-ctr">—%</div></div>
     <div class="kpi"><div class="kpi-label">AFSPRAKEN VANDAAG</div><div class="kpi-val" id="k-today">—</div></div>
   </div>
 
@@ -62,8 +79,19 @@ td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13p
   <div class="section">
     <h2>Klanten</h2>
     <table>
-      <thead><tr><th>BEDRIJF / EMAIL</th><th>STATUS</th><th>API KEY</th><th>AANGEMELD</th><th>ACTIE</th></tr></thead>
-      <tbody id="customers-table"><tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.3);padding:30px">Laden...</td></tr></tbody>
+      <thead>
+        <tr>
+          <th>BEDRIJF / EMAIL</th>
+          <th>STATUS</th>
+          <th>PROEF TOT</th>
+          <th>API KEY</th>
+          <th>AANGEMELD</th>
+          <th>ACTIE</th>
+        </tr>
+      </thead>
+      <tbody id="customers-table">
+        <tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,.3);padding:30px">Laden...</td></tr>
+      </tbody>
     </table>
   </div>
 </div>
@@ -72,23 +100,45 @@ td{padding:13px 14px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13p
 const ADMIN_KEY = new URLSearchParams(location.search).get('admin_key') || '';
 
 async function load(){
-  const r = await fetch('/api/admin/stats?admin_key='+ADMIN_KEY);
-  if(r.status===401){ document.body.innerHTML='<div style="text-align:center;padding:100px;color:#ff6b6b;font-size:20px">Geen toegang.</div>'; return; }
-  const d = await r.json();
-  document.getElementById('k-mrr').textContent    = '€'+d.mrr.toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('k-arr').textContent    = '€'+d.arr.toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});
-  document.getElementById('k-active').textContent = d.active_customers;
-  document.getElementById('k-today').textContent  = d.appointments_today;
-  const tbody = document.getElementById('customers-table');
-  tbody.innerHTML = d.customers.length ? d.customers.map(c=>`
-    <tr>
-      <td><div style="font-weight:600">${c.business_name||'—'}</div><div style="color:rgba(255,255,255,.4);font-size:12px">${c.email}</div></td>
-      <td><span class="badge ${c.active?'badge-on':'badge-off'}">${c.active?'ACTIEF':'INACTIEF'}</span></td>
-      <td style="font-family:monospace;font-size:11px;color:rgba(255,255,255,.4)">${c.api_key.slice(0,16)}...</td>
-      <td style="color:rgba(255,255,255,.45)">${(c.created_at||'').slice(0,10)}</td>
-      <td>${c.active?`<button onclick="cancelSub('${c.email}')" style="background:rgba(255,100,100,.12);border:1px solid rgba(255,100,100,.25);color:#ff6464;padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer">Opzeggen</button>`:'—'}</td>
-    </tr>`).join('')
-    : '<tr><td colspan="5" style="text-align:center;color:rgba(255,255,255,.3);padding:30px">Nog geen klanten</td></tr>';
+  document.getElementById('last-refresh').textContent = 'Laden...';
+  try {
+    const r = await fetch('/api/admin/stats?admin_key='+ADMIN_KEY);
+    if(r.status===401){ document.body.innerHTML='<div style="text-align:center;padding:100px;color:#ff6b6b;font-size:20px">Geen toegang.</div>'; return; }
+    const d = await r.json();
+    document.getElementById('k-mrr').textContent    = '€'+d.mrr.toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('k-arr').textContent    = '€'+d.arr.toLocaleString('nl-NL',{minimumFractionDigits:2,maximumFractionDigits:2});
+    document.getElementById('k-active').textContent = (d.active_customers||0) - (d.trial_customers||0);
+    document.getElementById('k-trial').textContent  = d.trial_customers||0;
+    document.getElementById('k-emails').textContent = d.emails_sent||0;
+    document.getElementById('k-clicks').textContent = d.leads_clicked||0;
+    const ctr = d.emails_sent > 0 ? ((d.leads_clicked/d.emails_sent)*100).toFixed(1) : '0.0';
+    document.getElementById('k-ctr').textContent    = ctr+'%';
+    document.getElementById('k-today').textContent  = d.appointments_today||0;
+    document.getElementById('last-refresh').textContent = 'Bijgewerkt: '+new Date().toLocaleTimeString('nl-NL');
+
+    const tbody = document.getElementById('customers-table');
+    const now = new Date().toISOString();
+    if(!d.customers||!d.customers.length){
+      tbody.innerHTML='<tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,.3);padding:30px">Nog geen klanten</td></tr>';
+      return;
+    }
+    tbody.innerHTML = d.customers.map(c=>{
+      const badge = c.is_trial
+        ? `<span class="badge badge-trial">PROEF</span>`
+        : c.active ? `<span class="badge badge-on">BETAALD</span>` : `<span class="badge badge-off">INACTIEF</span>`;
+      const trialEnd = c.is_trial && c.trial_ends_at
+        ? `<span style="color:#ff9f43;font-size:12px">t/m ${c.trial_ends_at.slice(0,10)}</span>`
+        : `<span style="color:rgba(255,255,255,.2);font-size:12px">—</span>`;
+      return `<tr>
+        <td><div style="font-weight:600">${c.business_name||'—'}</div><div style="color:rgba(255,255,255,.4);font-size:12px">${c.email}</div></td>
+        <td>${badge}</td>
+        <td>${trialEnd}</td>
+        <td style="font-family:monospace;font-size:11px;color:rgba(255,255,255,.4)">${c.api_key.slice(0,16)}...</td>
+        <td style="color:rgba(255,255,255,.45)">${(c.created_at||'').slice(0,10)}</td>
+        <td>${c.active?`<button onclick="cancelSub('${c.email}')" style="background:rgba(255,100,100,.12);border:1px solid rgba(255,100,100,.25);color:#ff6464;padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer">Opzeggen</button>`:'—'}</td>
+      </tr>`;
+    }).join('');
+  } catch(e){ document.getElementById('last-refresh').textContent = 'Fout: '+e.message; }
 }
 
 async function activateCustomer(){

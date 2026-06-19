@@ -185,6 +185,8 @@ def init_db():
         type TEXT,
         sent_at TEXT
     )''')
+    try: c.execute('ALTER TABLE leads ADD COLUMN link_clicks INTEGER DEFAULT 0')
+    except: pass
     c.commit(); c.close()
 
 init_db()
@@ -456,7 +458,7 @@ COPY = {
     },
 }
 
-def email_html(name, url, follow_up=False, city='', to_email=''):
+def email_html(name, url, follow_up=False, city='', to_email='', lead_id=''):
     lang   = detect_language(city)
     t      = COPY[lang]
     domain = urlparse(url).netloc.replace('www.', '')
@@ -488,7 +490,7 @@ def email_html(name, url, follow_up=False, city='', to_email=''):
   <table style="margin:0 0 24px;width:100%">{bullets_html}</table>
   <table cellpadding="0" cellspacing="0" style="margin:0 auto 28px"><tr>
     <td style="background:linear-gradient(135deg,#10b981,#059669);border-radius:8px;padding:14px 32px">
-      <a href="{BASE_URL}?ref={domain}" style="color:#fff;text-decoration:none;font-size:15px;font-weight:700">{t['cta']}</a>
+      <a href="{BASE_URL}/track/click?lid={lead_id}&ref={domain}" style="color:#fff;text-decoration:none;font-size:15px;font-weight:700">{t['cta']}</a>
     </td>
   </tr></table>
   <p style="font-size:14px;color:#888;margin:0 0 6px">{t['price']}</p>
@@ -505,12 +507,12 @@ def email_html(name, url, follow_up=False, city='', to_email=''):
     return subject, body
 
 # ── Email verzenden ─────────────────────────────────────────
-def send_email(to_email, business_name, url, follow_up=False, city=''):
+def send_email(to_email, business_name, url, follow_up=False, city='', lead_id=''):
     if not GMAIL_ADDRESS or not GMAIL_PASSWORD:
         print('[MAIL] Geen Gmail credentials in .env')
         return False
     try:
-        subject, html = email_html(business_name, url, follow_up, city=city, to_email=to_email)
+        subject, html = email_html(business_name, url, follow_up, city=city, to_email=to_email, lead_id=lead_id)
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
         msg['From']    = f'{SENDER_NAME} <{GMAIL_ADDRESS}>'
@@ -567,7 +569,7 @@ def send_cold_emails(max_per_day=200):
     sent = 0
     for lead in leads:
         lang = detect_language(lead['city'] or '')
-        if send_email(lead['email'], lead['business_name'] or '', lead['url'], city=lead['city'] or ''):
+        if send_email(lead['email'], lead['business_name'] or '', lead['url'], city=lead['city'] or '', lead_id=lead['id']):
             c.execute('UPDATE leads SET email_sent=1, email_sent_at=? WHERE id=?',
                 (datetime.now().isoformat(), lead['id']))
             c.execute('INSERT INTO email_log (lead_id,to_email,subject,type,sent_at) VALUES (?,?,?,?,?)',
@@ -590,7 +592,7 @@ def send_followups():
     for lead in leads:
         lang = detect_language(lead['city'] or '')
         if send_email(lead['email'], lead['business_name'] or '', lead['url'],
-                      follow_up=True, city=lead['city'] or ''):
+                      follow_up=True, city=lead['city'] or '', lead_id=lead['id']):
             c.execute('UPDATE leads SET followup_sent=1, followup_sent_at=? WHERE id=?',
                 (datetime.now().isoformat(), lead['id']))
             c.execute('INSERT INTO email_log (lead_id,to_email,subject,type,sent_at) VALUES (?,?,?,?,?)',

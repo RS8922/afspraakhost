@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory
+from flask import Flask, request, jsonify, send_from_directory, redirect
 import os, uuid, sqlite3, smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -9,8 +9,9 @@ from functools import wraps
 load_dotenv()
 
 app      = Flask(__name__, static_folder='static')
-ADMIN_KEY = os.getenv('ADMIN_KEY', 'jarvis-admin-2024')
-BASE_URL  = os.getenv('BASE_URL', 'https://afspraakhost-production.up.railway.app')
+ADMIN_KEY    = os.getenv('ADMIN_KEY', 'jarvis-admin-2024')
+BASE_URL     = os.getenv('BASE_URL', 'https://afspraakhost-production.up.railway.app')
+OUTREACH_DB  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'outreach.db')
 
 # ── Database ───────────────────────────────────────────────
 def db():
@@ -225,6 +226,19 @@ def live():
 def book():
     return send_from_directory('static', 'book.html')
 
+@app.route('/track/click')
+def track_click():
+    lid = request.args.get('lid', '')
+    ref = request.args.get('ref', '')
+    if lid:
+        try:
+            oc = sqlite3.connect(OUTREACH_DB)
+            oc.execute('UPDATE leads SET link_clicks=COALESCE(link_clicks,0)+1 WHERE id=?', (lid,))
+            oc.commit(); oc.close()
+        except: pass
+    dest = BASE_URL + (f'?ref={ref}' if ref else '')
+    return redirect(dest, 302)
+
 @app.route('/widget.js')
 def widget_js():
     response = app.make_response(send_from_directory('static', 'widget.js'))
@@ -299,16 +313,30 @@ def admin_stats():
     c = db()
     total  = c.execute('SELECT COUNT(*) FROM customers').fetchone()[0]
     active = c.execute('SELECT COUNT(*) FROM customers WHERE active=1').fetchone()[0]
+    trial  = c.execute("SELECT COUNT(*) FROM customers WHERE active=1 AND trial_ends_at IS NOT NULL AND trial_ends_at > datetime('now')").fetchone()[0]
     apts   = c.execute('SELECT COUNT(*) FROM appointments').fetchone()[0]
     today  = c.execute("SELECT COUNT(*) FROM appointments WHERE created_at>=date('now')").fetchone()[0]
-    custs  = c.execute('SELECT email,business_name,active,api_key,created_at FROM customers ORDER BY created_at DESC').fetchall()
+    custs  = c.execute('SELECT email,business_name,active,api_key,created_at,trial_ends_at FROM customers ORDER BY created_at DESC').fetchall()
     c.close()
+    emails_sent = total_clicks = leads_clicked = 0
+    try:
+        oc = sqlite3.connect(OUTREACH_DB)
+        emails_sent   = oc.execute('SELECT COUNT(*) FROM leads WHERE email_sent=1').fetchone()[0]
+        total_clicks  = oc.execute('SELECT COALESCE(SUM(link_clicks),0) FROM leads').fetchone()[0]
+        leads_clicked = oc.execute('SELECT COUNT(*) FROM leads WHERE link_clicks>0').fetchone()[0]
+        oc.close()
+    except: pass
     mrr = active * 54.5
+    now = datetime.now().isoformat()
     return jsonify({
-        'total_customers': total, 'active_customers': active,
+        'total_customers': total, 'active_customers': active, 'trial_customers': trial,
         'mrr': mrr, 'arr': mrr * 12,
         'total_appointments': apts, 'appointments_today': today,
-        'customers': [dict(r) for r in custs]
+        'emails_sent': emails_sent, 'total_clicks': total_clicks, 'leads_clicked': leads_clicked,
+        'customers': [{
+            **dict(r),
+            'is_trial': bool(r['trial_ends_at'] and r['active'] and r['trial_ends_at'] > now)
+        } for r in custs]
     })
 
 # ── Live stats ─────────────────────────────────────────────
