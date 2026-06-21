@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AfspraakHost — Probeer de demo</title>
+<title>AfspraakHost â€” Probeer de demo</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#fff;min-height:100vh}
@@ -21,7 +21,7 @@ h1{font-size:44px;font-weight:900;line-height:1.1;margin-bottom:14px}
 h1 span{background:linear-gradient(90deg,#10b981,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
 .hero-sub{font-size:17px;color:rgba(255,255,255,.5);margin-bottom:48px}
 
-/* Demo widget — zelfde stijl als homepage maar interactief */
+/* Demo widget â€” zelfde stijl als homepage maar interactief */
 .demo-wrap{max-width:400px;margin:0 auto;padding:0 20px 60px}
 .demo-label-top{font-size:11px;letter-spacing:3px;color:rgba(16,185,129,.5);text-align:center;margin-bottom:20px}
 .demo-box{background:rgba(255,255,255,.04);border:1px solid rgba(16,185,129,.2);border-radius:20px;padding:28px}
@@ -99,11 +99,11 @@ h1 span{background:linear-gradient(90deg,#10b981,#34d399);-webkit-background-cli
 <div class="hero">
   <div class="hero-badge">LIVE DEMO</div>
   <h1>Boek zelf een <span>proef-afspraak</span></h1>
-  <p class="hero-sub">Precies zo ervaren uw klanten het. Klik door de flow — geen account nodig.</p>
+  <p class="hero-sub">Precies zo ervaren uw klanten het. Klik door de flow â€” geen account nodig.</p>
 </div>
 
 <div class="demo-wrap">
-  <div class="demo-label-top">INTERACTIEVE DEMO — KAPSALON EMMA</div>
+  <div class="demo-label-top">INTERACTIEVE DEMO â€” KAPSALON EMMA</div>
   <div class="demo-box">
     <div class="step-bar">
       <div class="step-item active" id="si1">1. DATUM</div>
@@ -114,9 +114,9 @@ h1 span{background:linear-gradient(90deg,#10b981,#34d399);-webkit-background-cli
     <!-- Stap 1: Datum -->
     <div id="s1">
       <div class="month-nav">
-        <button class="month-btn" onclick="prevMonth()">‹</button>
+        <button class="month-btn" onclick="prevMonth()">â€¹</button>
         <span class="month-label" id="month-label"></span>
-        <button class="month-btn" onclick="nextMonth()">›</button>
+        <button class="month-btn" onclick="nextMonth()">â€º</button>
       </div>
       <div class="day-hdrs">
         <div class="day-hdr">Ma</div><div class="day-hdr">Di</div><div class="day-hdr">Wo</div>
@@ -129,27 +129,27 @@ h1 span{background:linear-gradient(90deg,#10b981,#34d399);-webkit-background-cli
 
     <!-- Stap 2: Tijdstip -->
     <div id="s2" style="display:none">
-      <span class="back-link" onclick="goStep(1)">← Andere datum kiezen</span>
+      <span class="back-link" onclick="goStep(1)">â† Andere datum kiezen</span>
       <div class="slots-title">BESCHIKBARE TIJDEN OP <span id="date-label" style="color:#10b981"></span></div>
       <div class="slots-grid" id="slots"></div>
     </div>
 
     <!-- Stap 3: Gegevens -->
     <div id="s3" style="display:none">
-      <span class="back-link" onclick="goStep(2)">← Ander tijdstip</span>
+      <span class="back-link" onclick="goStep(2)">â† Ander tijdstip</span>
       <div class="slots-title" style="margin-bottom:16px">AFSPRAAK: <span id="appt-label" style="color:#10b981"></span></div>
       <input class="demo-input" id="f-name" placeholder="Uw naam">
       <input class="demo-input" id="f-email" type="email" placeholder="E-mailadres">
       <input class="demo-input" id="f-phone" placeholder="Telefoonnummer (optioneel)">
-      <button class="demo-btn" onclick="confirm()">Afspraak bevestigen →</button>
+      <button class="demo-btn" onclick="confirm()">Afspraak bevestigen â†’</button>
     </div>
 
     <!-- Stap 4: Bevestiging -->
     <div id="s4" style="display:none">
       <div class="success">
-        <div class="success-icon">✓</div>
+        <div class="success-icon">âœ“</div>
         <h3>Afspraak bevestigd!</h3>
-        <p>U én de salon ontvangen direct een bevestiging per e-mail.</p>
+        <p>U Ã©n de salon ontvangen direct een bevestiging per e-mail.</p>
         <div class="success-details">
           <p><strong>Salon:</strong> Kapsalon Emma</p>
           <p><strong>Datum:</strong> <span id="c-date"></span></p>
@@ -166,9 +166,9 @@ h1 span{background:linear-gradient(90deg,#10b981,#34d399);-webkit-background-cli
 <div class="cta-section">
   <div class="cta-box">
     <h2>Zet dit op uw website</h2>
-    <p>Één regel code — binnen 2 minuten live. Klanten boeken zelf, u krijgt een e-mail.</p>
-    <a href="/" class="cta-big">7 dagen gratis proberen →</a>
-    <div class="cta-sub">Geen creditcard · €54,50/maand · Altijd opzegbaar</div>
+    <p>Ã‰Ã©n regel code â€” binnen 2 minuten live. Klanten boeken zelf, u krijgt een e-mail.</p>
+    <a href="/" class="cta-big">7 dagen gratis proberen â†’</a>
+    <div class="cta-sub">Geen creditcard Â· â‚¬20,00/maand Â· Altijd opzegbaar</div>
   </div>
 </div>
 
@@ -262,3 +262,4 @@ buildCal();
 </script>
 </body>
 </html>
+

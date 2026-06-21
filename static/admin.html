@@ -84,13 +84,14 @@ tr:hover td{background:rgba(255,255,255,.02)}
           <th>BEDRIJF / EMAIL</th>
           <th>STATUS</th>
           <th>PROEF TOT</th>
+          <th>MAIL GEKLIKT</th>
           <th>API KEY</th>
           <th>AANGEMELD</th>
           <th>ACTIE</th>
         </tr>
       </thead>
       <tbody id="customers-table">
-        <tr><td colspan="6" style="text-align:center;color:rgba(255,255,255,.3);padding:30px">Laden...</td></tr>
+        <tr><td colspan="7" style="text-align:center;color:rgba(255,255,255,.3);padding:30px">Laden...</td></tr>
       </tbody>
     </table>
   </div>
@@ -129,10 +130,14 @@ async function load(){
       const trialEnd = c.is_trial && c.trial_ends_at
         ? `<span style="color:#ff9f43;font-size:12px">t/m ${c.trial_ends_at.slice(0,10)}</span>`
         : `<span style="color:rgba(255,255,255,.2);font-size:12px">—</span>`;
+      const clicked = c.email_clicked
+        ? `<span><span class="click-dot"></span>${c.email_clicked}x geklikt</span>`
+        : `<span style="color:rgba(255,255,255,.2)">—</span>`;
       return `<tr>
         <td><div style="font-weight:600">${c.business_name||'—'}</div><div style="color:rgba(255,255,255,.4);font-size:12px">${c.email}</div></td>
         <td>${badge}</td>
         <td>${trialEnd}</td>
+        <td>${clicked}</td>
         <td style="font-family:monospace;font-size:11px;color:rgba(255,255,255,.4)">${c.api_key.slice(0,16)}...</td>
         <td style="color:rgba(255,255,255,.45)">${(c.created_at||'').slice(0,10)}</td>
         <td>${c.active?`<button onclick="cancelSub('${c.email}')" style="background:rgba(255,100,100,.12);border:1px solid rgba(255,100,100,.25);color:#ff6464;padding:4px 12px;border-radius:6px;font-size:11px;cursor:pointer">Opzeggen</button>`:'—'}</td>

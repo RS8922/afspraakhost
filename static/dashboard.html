@@ -1,9 +1,9 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="nl">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>AfspraakHost — Dashboard</title>
+<title>AfspraakHost â€” Dashboard</title>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#fff;min-height:100vh}
@@ -53,10 +53,10 @@ td{padding:12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
   <span id="nav-biz" style="color:rgba(255,255,255,.4);font-size:14px"></span>
 </nav>
 <div id="inactive-screen" class="inactive-screen">
-  <div style="font-size:48px;margin-bottom:16px">⏸</div>
+  <div style="font-size:48px;margin-bottom:16px">â¸</div>
   <h2 style="margin-bottom:12px">Account niet actief</h2>
   <p style="color:rgba(255,255,255,.4)">Je proefperiode is verlopen of je account is nog niet actief.<br>
-  Maak €54,50 over naar <strong>NL26 REVO 1741 4708 03</strong> (R. Spronken)<br>
+  Maak â‚¬20,00 over naar <strong>NL26 REVO 1741 4708 03</strong> (R. Spronken)<br>
   met je e-mailadres als omschrijving.</p>
 </div>
 <div class="wrap" id="main-wrap" style="display:none">
@@ -64,16 +64,16 @@ td{padding:12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
   <p class="sub" id="dash-sub">Beheer je afspraken en beschikbaarheid</p>
 
   <div class="cards">
-    <div class="card"><div class="card-label">AFSPRAKEN VANDAAG</div><div class="card-val" id="stat-today">—</div></div>
-    <div class="card"><div class="card-label">DEZE WEEK</div><div class="card-val" id="stat-week">—</div></div>
-    <div class="card"><div class="card-label">TOTAAL</div><div class="card-val" id="stat-total">—</div></div>
+    <div class="card"><div class="card-label">AFSPRAKEN VANDAAG</div><div class="card-val" id="stat-today">â€”</div></div>
+    <div class="card"><div class="card-label">DEZE WEEK</div><div class="card-val" id="stat-week">â€”</div></div>
+    <div class="card"><div class="card-label">TOTAAL</div><div class="card-val" id="stat-total">â€”</div></div>
   </div>
 
   <div class="section">
-    <h2>Boekingswidget — kopieer dit naar uw website</h2>
+    <h2>Boekingswidget â€” kopieer dit naar uw website</h2>
     <div class="embed-box" id="embed-code">
-      &lt;script src="…/widget.js?key=LADEN…"&gt;&lt;/script&gt;
-      <button class="copy-btn" onclick="copyEmbed()">Kopiëren</button>
+      &lt;script src="â€¦/widget.js?key=LADENâ€¦"&gt;&lt;/script&gt;
+      <button class="copy-btn" onclick="copyEmbed()">KopiÃ«ren</button>
     </div>
     <p style="margin-top:10px;font-size:12px;color:rgba(255,255,255,.3)">
       Plak deze regel net voor de &lt;/body&gt; tag. De boekingsknop verschijnt automatisch.
@@ -86,7 +86,7 @@ td{padding:12px;border-bottom:1px solid rgba(255,255,255,.04);font-size:13px}
     <div class="avail-grid" id="avail-grid"></div>
     <div id="avail-times"></div>
     <button class="save-btn" onclick="saveAvailability()">Opslaan</button>
-    <span id="avail-msg" style="margin-left:12px;font-size:13px;color:#10b981;display:none">✓ Opgeslagen!</span>
+    <span id="avail-msg" style="margin-left:12px;font-size:13px;color:#10b981;display:none">âœ“ Opgeslagen!</span>
   </div>
 
   <div class="section">
@@ -114,7 +114,7 @@ async function load(){
     document.getElementById('main-wrap').style.display='block';
     document.getElementById('nav-biz').textContent = cfg.business_name || cfg.email;
     document.getElementById('embed-code').innerHTML =
-      `&lt;script src="${location.origin}/widget.js?key=${KEY}"&gt;&lt;\/script&gt;<button class="copy-btn" onclick="copyEmbed()">Kopiëren</button>`;
+      `&lt;script src="${location.origin}/widget.js?key=${KEY}"&gt;&lt;\/script&gt;<button class="copy-btn" onclick="copyEmbed()">KopiÃ«ren</button>`;
     const now = new Date().toISOString().slice(0,10);
     const weekStart = getWeekStart();
     const today  = apts.filter(a=>a.date===now && a.status!=='cancelled').length;
@@ -131,7 +131,7 @@ async function load(){
     tbody.innerHTML = upcoming.length ? upcoming.map(a=>`
       <tr>
         <td><div style="font-weight:600">${a.customer_name}</div><div style="color:rgba(255,255,255,.35);font-size:12px">${a.customer_email}</div></td>
-        <td style="color:rgba(255,255,255,.5)">${a.service||'—'}</td>
+        <td style="color:rgba(255,255,255,.5)">${a.service||'â€”'}</td>
         <td><div>${a.date}</div><div style="color:#10b981;font-size:13px">${a.time}</div></td>
         <td><span class="badge badge-ok">Bevestigd</span></td>
         <td><button onclick="cancelApt(${a.id})" style="background:rgba(255,100,100,.1);border:1px solid rgba(255,100,100,.2);color:#ff6464;padding:4px 10px;border-radius:6px;font-size:11px;cursor:pointer">Annuleer</button></td>
@@ -201,10 +201,11 @@ async function cancelApt(id){
 
 function copyEmbed(){
   navigator.clipboard.writeText(`<script src="${location.origin}/widget.js?key=${KEY}"><\/script>`);
-  event.target.textContent='Gekopieerd!'; setTimeout(()=>event.target.textContent='Kopiëren',2000);
+  event.target.textContent='Gekopieerd!'; setTimeout(()=>event.target.textContent='KopiÃ«ren',2000);
 }
 
 load();
 </script>
 </body>
 </html>
+

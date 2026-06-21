@@ -1,4 +1,4 @@
-from flask import Flask, request, jsonify, send_from_directory, redirect
+﻿from flask import Flask, request, jsonify, send_from_directory, redirect
 from html import escape as html_escape
 import os, uuid, sqlite3, smtplib
 from email.mime.multipart import MIMEMultipart
@@ -14,7 +14,7 @@ ADMIN_KEY    = os.getenv('ADMIN_KEY', 'jarvis-admin-2024')
 BASE_URL     = os.getenv('BASE_URL', 'https://afspraakhost-production.up.railway.app')
 OUTREACH_DB  = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'outreach.db')
 
-# ── Database ───────────────────────────────────────────────
+# â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def db():
     conn = sqlite3.connect('customers.db')
     conn.row_factory = sqlite3.Row
@@ -62,7 +62,7 @@ def init_db():
 
 init_db()
 
-# ── Helpers ────────────────────────────────────────────────
+# â”€â”€ Helpers â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def get_customer(api_key):
     c = db()
     row = c.execute('SELECT * FROM customers WHERE api_key=?', (api_key,)).fetchone()
@@ -91,13 +91,13 @@ def send_welcome_email(email, api_key, business_name, trial=False):
     trial_block = f"""
     <div style="background:#fff3cd;border:1px solid #ffc107;border-radius:8px;padding:16px;margin:16px 0">
       <strong>Je hebt 7 dagen gratis toegang tot en met {trial_end}.</strong><br>
-      <span style="font-size:13px;color:#666">Daarna: €54,50/maand via bankoverschrijving (zie onderaan).</span>
+      <span style="font-size:13px;color:#666">Daarna: â‚¬20,00/maand via bankoverschrijving (zie onderaan).</span>
     </div>""" if trial else ''
     iban_block = """
     <hr style="border:none;border-top:1px solid #eee;margin:24px 0">
     <p style="font-size:13px;color:#888"><strong>Na je proefperiode doorgaan?</strong><br>
-    Maak €54,50 over met je e-mailadres als omschrijving:<br>
-    <strong>IBAN: NL26 REVO 1741 4708 03</strong> · R. Spronken<br>
+    Maak â‚¬20,00 over met je e-mailadres als omschrijving:<br>
+    <strong>IBAN: NL26 REVO 1741 4708 03</strong> Â· R. Spronken<br>
     Je account blijft dan actief.</p>""" if trial else ''
     body = f"""
 <div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333">
@@ -154,14 +154,14 @@ def send_appointment_email(business_email, customer_name, customer_email, date, 
   <div style="background:#f9f9f9;padding:24px;border-radius:0 0 12px 12px">
     <p><strong>Klant:</strong> {customer_name}</p>
     <p><strong>Email:</strong> {customer_email}</p>
-    <p><strong>Dienst:</strong> {service or '—'}</p>
+    <p><strong>Dienst:</strong> {service or 'â€”'}</p>
     <p><strong>Datum:</strong> {date}</p>
     <p><strong>Tijd:</strong> {time}</p>
-    <p style="margin-top:16px"><a href="{BASE_URL}/dashboard?key={api_key}" style="color:#10b981">Bekijk in dashboard →</a></p>
+    <p style="margin-top:16px"><a href="{BASE_URL}/dashboard?key={api_key}" style="color:#10b981">Bekijk in dashboard â†’</a></p>
   </div>
 </div>"""
     msg_biz = MIMEMultipart('alternative')
-    msg_biz['Subject'] = f'Nieuwe afspraak — {customer_name} op {date} om {time}'
+    msg_biz['Subject'] = f'Nieuwe afspraak â€” {customer_name} op {date} om {time}'
     msg_biz['From']    = f'{os.getenv("SENDER_NAME", "Robin")} <{gmail}>'
     msg_biz['To']      = business_email
     msg_biz.attach(MIMEText(body_biz, 'html'))
@@ -175,7 +175,7 @@ def send_appointment_email(business_email, customer_name, customer_email, date, 
     <p>Hallo {customer_name},</p>
     <p>Je afspraak bij <strong>{business_name}</strong> is bevestigd!</p>
     <div style="background:#e8f5e9;border-radius:8px;padding:16px;margin:16px 0">
-      <p style="margin:4px 0"><strong>Dienst:</strong> {service or '—'}</p>
+      <p style="margin:4px 0"><strong>Dienst:</strong> {service or 'â€”'}</p>
       <p style="margin:4px 0"><strong>Datum:</strong> {date}</p>
       <p style="margin:4px 0"><strong>Tijd:</strong> {time}</p>
     </div>
@@ -183,7 +183,7 @@ def send_appointment_email(business_email, customer_name, customer_email, date, 
   </div>
 </div>"""
     msg_cust = MIMEMultipart('alternative')
-    msg_cust['Subject'] = f'Afspraakbevestiging — {date} om {time}'
+    msg_cust['Subject'] = f'Afspraakbevestiging â€” {date} om {time}'
     msg_cust['From']    = f'{os.getenv("SENDER_NAME", "Robin")} <{gmail}>'
     msg_cust['To']      = customer_email
     msg_cust.attach(MIMEText(body_cust, 'html'))
@@ -209,7 +209,7 @@ def send_appointment_email(business_email, customer_name, customer_email, date, 
         print(f'[EMAIL FAIL] afspraak emails')
     threading.Thread(target=_send, daemon=True).start()
 
-# ── Static pages ───────────────────────────────────────────
+# â”€â”€ Static pages â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/')
 def index():
     return send_from_directory('static', 'index.html')
@@ -258,7 +258,7 @@ def widget_js():
     response.headers['Access-Control-Allow-Origin'] = '*'
     return response
 
-# ── Checkout ───────────────────────────────────────────────
+# â”€â”€ Checkout â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/checkout', methods=['POST'])
 def checkout():
     data     = request.json
@@ -286,7 +286,7 @@ def checkout():
     print(f'[TRIAL] {email} | {business}')
     return jsonify({'ok': True, 'trial': True})
 
-# ── Admin: activate ────────────────────────────────────────
+# â”€â”€ Admin: activate â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/admin/activate', methods=['POST'])
 @require_admin
 def admin_activate():
@@ -308,7 +308,7 @@ def admin_activate():
     send_welcome_email(email, api_key, business, trial=False)
     return jsonify({'ok': True, 'api_key': api_key})
 
-# ── Admin: cancel ──────────────────────────────────────────
+# â”€â”€ Admin: cancel â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/admin/cancel', methods=['POST'])
 @require_admin
 def admin_cancel():
@@ -318,7 +318,7 @@ def admin_cancel():
     c.commit(); c.close()
     return jsonify({'ok': True})
 
-# ── Admin: stats ───────────────────────────────────────────
+# â”€â”€ Admin: stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/admin/stats')
 @require_admin
 def admin_stats():
@@ -339,7 +339,7 @@ def admin_stats():
         leads_clicked = oc.execute('SELECT COUNT(*) FROM leads WHERE link_clicks>0').fetchone()[0]
         oc.close()
     except: pass
-    mrr = (active - trial) * 54.5
+    mrr = (active - trial) * 20
     now = datetime.now().isoformat()
     return jsonify({
         'total_customers': total, 'active_customers': active, 'trial_customers': trial,
@@ -353,7 +353,7 @@ def admin_stats():
         } for r in custs]
     })
 
-# ── Live stats ─────────────────────────────────────────────
+# â”€â”€ Live stats â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/live-stats')
 @require_admin
 def live_stats():
@@ -366,7 +366,7 @@ def live_stats():
     custs  = c.execute('SELECT email,business_name,active,created_at FROM customers ORDER BY created_at DESC').fetchall()
     days   = c.execute("SELECT date(created_at) as d, COUNT(*) as n FROM appointments GROUP BY date(created_at) ORDER BY date(created_at) DESC LIMIT 14").fetchall()
     c.close()
-    mrr = (active - trial) * 54.5
+    mrr = (active - trial) * 20
     return jsonify({
         'active': active, 'total': total, 'mrr': mrr, 'arr': mrr * 12,
         'appointments_total': apts, 'appointments_today': today,
@@ -375,7 +375,7 @@ def live_stats():
         'chart': [{'date': r['d'], 'count': r['n']} for r in reversed(days)],
     })
 
-# ── Customer: get config ───────────────────────────────────
+# â”€â”€ Customer: get config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/config')
 def get_config():
     key  = request.args.get('key', '')
@@ -388,7 +388,7 @@ def get_config():
         'api_key': key,
     })
 
-# ── Customer: update config ────────────────────────────────
+# â”€â”€ Customer: update config â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/config', methods=['POST'])
 def update_config():
     key  = request.args.get('key', '')
@@ -402,7 +402,7 @@ def update_config():
     c.commit(); c.close()
     return jsonify({'ok': True})
 
-# ── Customer: get availability ─────────────────────────────
+# â”€â”€ Customer: get availability â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/availability')
 def get_availability():
     key = request.args.get('key', '')
@@ -411,7 +411,7 @@ def get_availability():
     c.close()
     return jsonify([dict(r) for r in rows])
 
-# ── Customer: set availability ─────────────────────────────
+# â”€â”€ Customer: set availability â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/availability', methods=['POST'])
 def set_availability():
     key  = request.args.get('key', '')
@@ -427,7 +427,7 @@ def set_availability():
     c.commit(); c.close()
     return jsonify({'ok': True})
 
-# ── Customer: get appointments ─────────────────────────────
+# â”€â”€ Customer: get appointments â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/appointments')
 def get_appointments():
     key  = request.args.get('key', '')
@@ -439,7 +439,7 @@ def get_appointments():
     c.close()
     return jsonify([dict(r) for r in rows])
 
-# ── Customer: cancel appointment ───────────────────────────
+# â”€â”€ Customer: cancel appointment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/appointments/<int:aid>/cancel', methods=['POST'])
 def cancel_appointment(aid):
     key  = request.args.get('key', '')
@@ -451,7 +451,7 @@ def cancel_appointment(aid):
     c.commit(); c.close()
     return jsonify({'ok': True})
 
-# ── Public: get available slots for a date ─────────────────
+# â”€â”€ Public: get available slots for a date â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/slots')
 def get_slots():
     key  = request.args.get('key', '')
@@ -486,7 +486,7 @@ def get_slots():
             cur += timedelta(minutes=duration)
     return jsonify(slots)
 
-# ── Public: book appointment ───────────────────────────────
+# â”€â”€ Public: book appointment â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/api/book', methods=['POST'])
 def book_appointment():
     key  = request.args.get('key', '')
@@ -517,7 +517,7 @@ def book_appointment():
     print(f'[BOOKING] {cust["business_name"]} | {name} | {date} {time}')
     return jsonify({'ok': True})
 
-# ── Unsubscribe ────────────────────────────────────────────
+# â”€â”€ Unsubscribe â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 @app.route('/unsubscribe')
 def unsubscribe():
     email = request.args.get('email', '')
@@ -532,7 +532,7 @@ h2{{color:#333;margin-bottom:12px}}p{{color:#888;font-size:14px}}</style></head>
 def demo():
     return send_from_directory('static', 'demo.html')
 
-# ── Trial expiring reminder ────────────────────────────────
+# â”€â”€ Trial expiring reminder â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def send_trial_expiring_email(email, business_name):
     gmail = os.getenv('GMAIL_ADDRESS', '')
     pwd   = os.getenv('GMAIL_APP_PASSWORD', '')
@@ -545,14 +545,14 @@ def send_trial_expiring_email(email, business_name):
   <div style="background:#f9f9f9;padding:32px;border-radius:0 0 12px 12px">
     <p>Hallo{' ' + business_name if business_name else ''},</p>
     <p>Je gratis proefperiode bij AfspraakHost eindigt over <strong>2 dagen</strong>.</p>
-    <p>Wil je blijven werken met online afspraken? Maak dan €54,50 over:</p>
+    <p>Wil je blijven werken met online afspraken? Maak dan â‚¬20,00 over:</p>
     <div style="background:#e8f5e9;border-radius:8px;padding:20px;margin:20px 0">
       <p style="margin:4px 0;font-size:15px"><strong>IBAN:</strong> NL26 REVO 1741 4708 03</p>
       <p style="margin:4px 0;font-size:15px"><strong>Naam:</strong> R. Spronken</p>
       <p style="margin:4px 0;font-size:15px"><strong>Omschrijving:</strong> {email}</p>
-      <p style="margin:4px 0;font-size:15px"><strong>Bedrag:</strong> €54,50/maand</p>
+      <p style="margin:4px 0;font-size:15px"><strong>Bedrag:</strong> â‚¬20,00/maand</p>
     </div>
-    <p>Na ontvangst wordt je account direct verlengd. Geen creditcard, geen abonnement — gewoon overmaken.</p>
+    <p>Na ontvangst wordt je account direct verlengd. Geen creditcard, geen abonnement â€” gewoon overmaken.</p>
     <p style="color:#888;font-size:13px">Vragen? Mail naar spronken1234@gmail.com</p>
   </div>
 </div>"""
@@ -609,5 +609,7 @@ _threading.Thread(target=check_expiring_trials, daemon=True).start()
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 8082))
-    print(f'AfspraakHost — online op poort {port}')
+    print(f'AfspraakHost â€” online op poort {port}')
     app.run(debug=False, host='0.0.0.0', port=port, threaded=True)
+
+

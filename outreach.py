@@ -1,4 +1,4 @@
-"""
+﻿"""
 Volledig automatisch outreach systeem voor AfspraakHost.
 - Zoekt dagelijks bedrijven die online boeken kunnen gebruiken
 - Haalt contactemails op via OSM + website scraping
@@ -35,7 +35,7 @@ HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120.0.0.0 Safari/537.36'
 }
 
-# Booking system signatures — skip als ze al een online boeking hebben
+# Booking system signatures â€” skip als ze al een online boeking hebben
 BOOKING_SIGNATURES = [
     'calendly', 'acuityscheduling', 'bookamat', 'simplybook', 'setmore',
     'booksy', 'treatwell', 'fresha', 'planity', 'timify', 'appointy',
@@ -55,7 +55,7 @@ NICHES = {
     'yoga':             'yoga studio',
     'acupuncture':      'acupunctuur',
     'psychologists':    'psycholoog',
-    'dietitians':       'diëtist',
+    'dietitians':       'diÃ«tist',
     'opticians':        'opticien',
     'podiatry':         'pedicure',
     'osteopathy':       'osteopaat',
@@ -148,7 +148,7 @@ OSM_TAGS = {
     'veterinarians':    [('amenity', 'veterinary'), ('healthcare', 'veterinary')],
 }
 
-# ── Database ────────────────────────────────────────────────
+# â”€â”€ Database â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def db():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
@@ -212,7 +212,7 @@ def get_city_coords(city):
     except: pass
     return None, None
 
-# ── Lead finder via OSM → website scraping ──────────────────
+# â”€â”€ Lead finder via OSM â†’ website scraping â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def search_businesses(niche, city, count=10, radius=5000):
     """Zoek bedrijven via OSM. Geeft website-URLs terug."""
     lat, lon = get_city_coords(city)
@@ -262,7 +262,7 @@ def search_businesses(niche, city, count=10, radius=5000):
 
     return urls[:count]
 
-# ── Detectie bestaand boekingssysteem ──────────────────────
+# â”€â”€ Detectie bestaand boekingssysteem â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def has_booking_system(url):
     try:
         r = requests.get(url, headers=HEADERS, timeout=8)
@@ -271,7 +271,7 @@ def has_booking_system(url):
     except:
         return True  # bij fout: niet mailen
 
-# ── Email scraper ───────────────────────────────────────────
+# â”€â”€ Email scraper â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def find_email(url):
     emails = set()
     pages = [url, urljoin(url, '/contact'), urljoin(url, '/over-ons'),
@@ -294,7 +294,7 @@ def find_email(url):
         return sorted(emails)[0]
     return ''
 
-# ── Business name ───────────────────────────────────────────
+# â”€â”€ Business name â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def get_business_name(url):
     try:
         r = requests.get(url, headers=HEADERS, timeout=8)
@@ -306,7 +306,7 @@ def get_business_name(url):
     except: pass
     return urlparse(url).netloc.replace('www.', '').split('.')[0].capitalize()
 
-# ── Taaldetectie ────────────────────────────────────────────
+# â”€â”€ Taaldetectie â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def detect_language(city: str) -> str:
     c = city.lower()
     if any(x in c for x in [
@@ -335,35 +335,35 @@ def detect_language(city: str) -> str:
 
 COPY = {
     'nl': {
-        'tagline':   'Online Afspraken — Volledig Automatisch',
+        'tagline':   'Online Afspraken â€” Volledig Automatisch',
         'greeting':  'Hallo {name},',
-        'followup':  'Ik stuurde u vorige week een bericht — ik wil even controleren of het is aangekomen.',
+        'followup':  'Ik stuurde u vorige week een bericht â€” ik wil even controleren of het is aangekomen.',
         'intro':     'Ik bezocht <strong>{domain}</strong> en zag dat klanten nog geen afspraak online kunnen boeken.',
         'hook':      'Terwijl u dit leest, missen klanten de mogelijkheid om zelf een tijdstip te kiezen. AfspraakHost lost dat op:',
-        'bullets':   ['✅&nbsp; Klanten boeken zelf een afspraak — 24/7, ook \'s avonds',
-                      '✅&nbsp; U én de klant krijgen automatisch een bevestiging per e-mail',
-                      '✅&nbsp; Eén regel code op uw website — binnen 2 minuten live',
-                      '✅&nbsp; Zelf uw beschikbaarheid instellen per dag en tijdslot'],
+        'bullets':   ['âœ…&nbsp; Klanten boeken zelf een afspraak â€” 24/7, ook \'s avonds',
+                      'âœ…&nbsp; U Ã©n de klant krijgen automatisch een bevestiging per e-mail',
+                      'âœ…&nbsp; EÃ©n regel code op uw website â€” binnen 2 minuten live',
+                      'âœ…&nbsp; Zelf uw beschikbaarheid instellen per dag en tijdslot'],
         'cta':       'Bekijk een live demo',
-        'price':     '<strong style="color:#333">7 dagen gratis proberen</strong> — geen creditcard nodig. Daarna slechts €54,50/maand.',
+        'price':     '<strong style="color:#333">7 dagen gratis proberen</strong> â€” geen creditcard nodig. Daarna slechts â‚¬20,00/maand.',
         'sign':      'Met vriendelijke groet,',
         'unsub':     'U ontvangt dit omdat uw bedrijf online vindbaar is.',
         'unsub_link':'Uitschrijven',
         'subject':   'Klanten kunnen nu geen afspraak online boeken bij {domain}',
-        'subject_fu':'Nog even — online boeken voor {name}',
+        'subject_fu':'Nog even â€” online boeken voor {name}',
     },
     'en': {
-        'tagline':   'Online Appointments — Fully Automated',
+        'tagline':   'Online Appointments â€” Fully Automated',
         'greeting':  'Hi {name},',
         'followup':  'I reached out last week and just wanted to make sure my message got through.',
         'intro':     'I visited <strong>{domain}</strong> and noticed customers can\'t book an appointment online yet.',
-        'hook':      'Right now, customers who want to book are reaching for the phone — or going to a competitor. AfspraakHost fixes that:',
-        'bullets':   ['✅&nbsp; Customers book their own time slot — 24/7, even late at night',
-                      '✅&nbsp; You and the customer both get an automatic confirmation email',
-                      '✅&nbsp; One line of code on your site — live in under 2 minutes',
-                      '✅&nbsp; Set your own availability by day and time slot'],
+        'hook':      'Right now, customers who want to book are reaching for the phone â€” or going to a competitor. AfspraakHost fixes that:',
+        'bullets':   ['âœ…&nbsp; Customers book their own time slot â€” 24/7, even late at night',
+                      'âœ…&nbsp; You and the customer both get an automatic confirmation email',
+                      'âœ…&nbsp; One line of code on your site â€” live in under 2 minutes',
+                      'âœ…&nbsp; Set your own availability by day and time slot'],
         'cta':       'See a live demo',
-        'price':     '<strong style="color:#333">7-day free trial</strong> — no credit card needed. Then just €54.50/month.',
+        'price':     '<strong style="color:#333">7-day free trial</strong> â€” no credit card needed. Then just â‚¬20.00/month.',
         'sign':      'Best regards,',
         'unsub':     'You received this because your business is publicly listed online.',
         'unsub_link':'Unsubscribe',
@@ -371,94 +371,94 @@ COPY = {
         'subject_fu':'Following up about online booking for {name}',
     },
     'de': {
-        'tagline':   'Online-Termine — Vollautomatisch',
+        'tagline':   'Online-Termine â€” Vollautomatisch',
         'greeting':  'Guten Tag,',
-        'followup':  'Letzte Woche habe ich Ihnen eine Nachricht geschickt — ich wollte sicherstellen, dass sie angekommen ist.',
-        'intro':     'Ich habe <strong>{domain}</strong> besucht und festgestellt, dass Kunden noch keine Termine online buchen können.',
-        'hook':      'Im Moment greifen buchungswillige Kunden zum Telefon — oder gehen zur Konkurrenz. AfspraakHost löst das:',
-        'bullets':   ['✅&nbsp; Kunden buchen selbst einen Termin — 24/7, auch abends',
-                      '✅&nbsp; Sie und der Kunde erhalten automatisch eine Bestätigungs-E-Mail',
-                      '✅&nbsp; Eine Zeile Code auf Ihrer Website — in unter 2 Minuten live',
-                      '✅&nbsp; Eigene Verfügbarkeit nach Tag und Zeitfenster festlegen'],
+        'followup':  'Letzte Woche habe ich Ihnen eine Nachricht geschickt â€” ich wollte sicherstellen, dass sie angekommen ist.',
+        'intro':     'Ich habe <strong>{domain}</strong> besucht und festgestellt, dass Kunden noch keine Termine online buchen kÃ¶nnen.',
+        'hook':      'Im Moment greifen buchungswillige Kunden zum Telefon â€” oder gehen zur Konkurrenz. AfspraakHost lÃ¶st das:',
+        'bullets':   ['âœ…&nbsp; Kunden buchen selbst einen Termin â€” 24/7, auch abends',
+                      'âœ…&nbsp; Sie und der Kunde erhalten automatisch eine BestÃ¤tigungs-E-Mail',
+                      'âœ…&nbsp; Eine Zeile Code auf Ihrer Website â€” in unter 2 Minuten live',
+                      'âœ…&nbsp; Eigene VerfÃ¼gbarkeit nach Tag und Zeitfenster festlegen'],
         'cta':       'Live-Demo ansehen',
-        'price':     '<strong style="color:#333">7 Tage kostenlos testen</strong> — keine Kreditkarte erforderlich. Danach nur €54,50/Monat.',
-        'sign':      'Mit freundlichen Grüßen,',
-        'unsub':     'Sie erhalten diese E-Mail, weil Ihr Unternehmen öffentlich online gelistet ist.',
+        'price':     '<strong style="color:#333">7 Tage kostenlos testen</strong> â€” keine Kreditkarte erforderlich. Danach nur â‚¬20,00/Monat.',
+        'sign':      'Mit freundlichen GrÃ¼ÃŸen,',
+        'unsub':     'Sie erhalten diese E-Mail, weil Ihr Unternehmen Ã¶ffentlich online gelistet ist.',
         'unsub_link':'Abmelden',
-        'subject':   'Kunden können noch keine Termine bei {domain} online buchen',
-        'subject_fu':'Nachfrage wegen Online-Buchung für {name}',
+        'subject':   'Kunden kÃ¶nnen noch keine Termine bei {domain} online buchen',
+        'subject_fu':'Nachfrage wegen Online-Buchung fÃ¼r {name}',
     },
     'fr': {
-        'tagline':   'Rendez-vous en ligne — Entièrement automatisé',
+        'tagline':   'Rendez-vous en ligne â€” EntiÃ¨rement automatisÃ©',
         'greeting':  'Bonjour {name},',
-        'followup':  'Je vous ai contacté la semaine dernière et voulais m\'assurer que mon message vous est bien parvenu.',
-        'intro':     'J\'ai visité <strong>{domain}</strong> et remarqué que les clients ne peuvent pas encore prendre rendez-vous en ligne.',
-        'hook':      'En ce moment, les clients qui veulent réserver décrochent le téléphone — ou vont chez un concurrent. AfspraakHost résout cela :',
-        'bullets':   ['✅&nbsp; Les clients réservent eux-mêmes un créneau — 24h/24, même le soir',
-                      '✅&nbsp; Vous et le client recevez automatiquement un e-mail de confirmation',
-                      '✅&nbsp; Une ligne de code sur votre site — en ligne en moins de 2 minutes',
-                      '✅&nbsp; Définissez vos disponibilités par jour et créneau horaire'],
-        'cta':       'Voir une démo en direct',
-        'price':     '<strong style="color:#333">7 jours gratuits</strong> — sans carte bancaire. Ensuite seulement 54,50 €/mois.',
+        'followup':  'Je vous ai contactÃ© la semaine derniÃ¨re et voulais m\'assurer que mon message vous est bien parvenu.',
+        'intro':     'J\'ai visitÃ© <strong>{domain}</strong> et remarquÃ© que les clients ne peuvent pas encore prendre rendez-vous en ligne.',
+        'hook':      'En ce moment, les clients qui veulent rÃ©server dÃ©crochent le tÃ©lÃ©phone â€” ou vont chez un concurrent. AfspraakHost rÃ©sout cela :',
+        'bullets':   ['âœ…&nbsp; Les clients rÃ©servent eux-mÃªmes un crÃ©neau â€” 24h/24, mÃªme le soir',
+                      'âœ…&nbsp; Vous et le client recevez automatiquement un e-mail de confirmation',
+                      'âœ…&nbsp; Une ligne de code sur votre site â€” en ligne en moins de 2 minutes',
+                      'âœ…&nbsp; DÃ©finissez vos disponibilitÃ©s par jour et crÃ©neau horaire'],
+        'cta':       'Voir une dÃ©mo en direct',
+        'price':     '<strong style="color:#333">7 jours gratuits</strong> â€” sans carte bancaire. Ensuite seulement 20,00 â‚¬/mois.',
         'sign':      'Cordialement,',
-        'unsub':     'Vous recevez ceci car votre entreprise est répertoriée en ligne.',
-        'unsub_link':'Se désabonner',
-        'subject':   'Vos clients ne peuvent pas encore réserver en ligne sur {domain}',
-        'subject_fu':'Suivi — réservation en ligne pour {name}',
+        'unsub':     'Vous recevez ceci car votre entreprise est rÃ©pertoriÃ©e en ligne.',
+        'unsub_link':'Se dÃ©sabonner',
+        'subject':   'Vos clients ne peuvent pas encore rÃ©server en ligne sur {domain}',
+        'subject_fu':'Suivi â€” rÃ©servation en ligne pour {name}',
     },
     'es': {
-        'tagline':   'Citas en línea — Totalmente automatizado',
+        'tagline':   'Citas en lÃ­nea â€” Totalmente automatizado',
         'greeting':  'Hola {name},',
-        'followup':  'Le contacté la semana pasada y quería asegurarme de que mi mensaje le llegó.',
-        'intro':     'Visité <strong>{domain}</strong> y noté que los clientes aún no pueden reservar una cita en línea.',
-        'hook':      'Ahora mismo, los clientes que quieren reservar llaman por teléfono — o van a la competencia. AfspraakHost lo soluciona:',
-        'bullets':   ['✅&nbsp; Los clientes reservan su propio horario — 24/7, incluso por la noche',
-                      '✅&nbsp; Usted y el cliente reciben automáticamente un e-mail de confirmación',
-                      '✅&nbsp; Una línea de código en su sitio — activo en menos de 2 minutos',
-                      '✅&nbsp; Configure su disponibilidad por día y franja horaria'],
+        'followup':  'Le contactÃ© la semana pasada y querÃ­a asegurarme de que mi mensaje le llegÃ³.',
+        'intro':     'VisitÃ© <strong>{domain}</strong> y notÃ© que los clientes aÃºn no pueden reservar una cita en lÃ­nea.',
+        'hook':      'Ahora mismo, los clientes que quieren reservar llaman por telÃ©fono â€” o van a la competencia. AfspraakHost lo soluciona:',
+        'bullets':   ['âœ…&nbsp; Los clientes reservan su propio horario â€” 24/7, incluso por la noche',
+                      'âœ…&nbsp; Usted y el cliente reciben automÃ¡ticamente un e-mail de confirmaciÃ³n',
+                      'âœ…&nbsp; Una lÃ­nea de cÃ³digo en su sitio â€” activo en menos de 2 minutos',
+                      'âœ…&nbsp; Configure su disponibilidad por dÃ­a y franja horaria'],
         'cta':       'Ver una demo en vivo',
-        'price':     '<strong style="color:#333">7 días gratis</strong> — sin tarjeta de crédito. Después solo 54,50 €/mes.',
+        'price':     '<strong style="color:#333">7 dÃ­as gratis</strong> â€” sin tarjeta de crÃ©dito. DespuÃ©s solo 20,00 â‚¬/mes.',
         'sign':      'Saludos cordiales,',
-        'unsub':     'Recibe esto porque su empresa está listada públicamente en línea.',
+        'unsub':     'Recibe esto porque su empresa estÃ¡ listada pÃºblicamente en lÃ­nea.',
         'unsub_link':'Darse de baja',
-        'subject':   'Sus clientes aún no pueden reservar citas en línea en {domain}',
-        'subject_fu':'Seguimiento — reserva en línea para {name}',
+        'subject':   'Sus clientes aÃºn no pueden reservar citas en lÃ­nea en {domain}',
+        'subject_fu':'Seguimiento â€” reserva en lÃ­nea para {name}',
     },
     'it': {
-        'tagline':   'Appuntamenti online — Completamente automatizzato',
+        'tagline':   'Appuntamenti online â€” Completamente automatizzato',
         'greeting':  'Buongiorno {name},',
         'followup':  'La scorsa settimana le ho inviato un messaggio e volevo assicurarmi che fosse arrivato.',
         'intro':     'Ho visitato <strong>{domain}</strong> e ho notato che i clienti non possono ancora prenotare un appuntamento online.',
-        'hook':      'In questo momento, i clienti che vogliono prenotare chiamano al telefono — o si rivolgono alla concorrenza. AfspraakHost risolve il problema:',
-        'bullets':   ['✅&nbsp; I clienti prenotano il proprio orario — 24/7, anche la sera',
-                      '✅&nbsp; Lei e il cliente ricevono automaticamente un\'e-mail di conferma',
-                      '✅&nbsp; Una riga di codice sul sito — attivo in meno di 2 minuti',
-                      '✅&nbsp; Imposti la sua disponibilità per giorno e fascia oraria'],
+        'hook':      'In questo momento, i clienti che vogliono prenotare chiamano al telefono â€” o si rivolgono alla concorrenza. AfspraakHost risolve il problema:',
+        'bullets':   ['âœ…&nbsp; I clienti prenotano il proprio orario â€” 24/7, anche la sera',
+                      'âœ…&nbsp; Lei e il cliente ricevono automaticamente un\'e-mail di conferma',
+                      'âœ…&nbsp; Una riga di codice sul sito â€” attivo in meno di 2 minuti',
+                      'âœ…&nbsp; Imposti la sua disponibilitÃ  per giorno e fascia oraria'],
         'cta':       'Guarda una demo live',
-        'price':     '<strong style="color:#333">7 giorni gratuiti</strong> — nessuna carta di credito. Poi solo €54,50/mese.',
+        'price':     '<strong style="color:#333">7 giorni gratuiti</strong> â€” nessuna carta di credito. Poi solo â‚¬20,00/mese.',
         'sign':      'Cordiali saluti,',
-        'unsub':     'Riceve questa e-mail perché la sua azienda è elencata pubblicamente online.',
+        'unsub':     'Riceve questa e-mail perchÃ© la sua azienda Ã¨ elencata pubblicamente online.',
         'unsub_link':'Annulla iscrizione',
         'subject':   'I suoi clienti non possono ancora prenotare online su {domain}',
-        'subject_fu':'Aggiornamento — prenotazione online per {name}',
+        'subject_fu':'Aggiornamento â€” prenotazione online per {name}',
     },
     'pt': {
-        'tagline':   'Marcações online — Totalmente automatizado',
-        'greeting':  'Olá {name},',
+        'tagline':   'MarcaÃ§Ãµes online â€” Totalmente automatizado',
+        'greeting':  'OlÃ¡ {name},',
         'followup':  'Entrei em contacto na semana passada e queria garantir que a minha mensagem chegou.',
-        'intro':     'Visitei <strong>{domain}</strong> e reparei que os clientes ainda não podem marcar uma consulta online.',
-        'hook':      'Neste momento, os clientes que querem marcar ligam para o telefone — ou vão a um concorrente. AfspraakHost resolve isso:',
-        'bullets':   ['✅&nbsp; Os clientes marcam o seu próprio horário — 24/7, mesmo à noite',
-                      '✅&nbsp; Você e o cliente recebem automaticamente um e-mail de confirmação',
-                      '✅&nbsp; Uma linha de código no seu site — ativo em menos de 2 minutos',
-                      '✅&nbsp; Defina a sua disponibilidade por dia e horário'],
+        'intro':     'Visitei <strong>{domain}</strong> e reparei que os clientes ainda nÃ£o podem marcar uma consulta online.',
+        'hook':      'Neste momento, os clientes que querem marcar ligam para o telefone â€” ou vÃ£o a um concorrente. AfspraakHost resolve isso:',
+        'bullets':   ['âœ…&nbsp; Os clientes marcam o seu prÃ³prio horÃ¡rio â€” 24/7, mesmo Ã  noite',
+                      'âœ…&nbsp; VocÃª e o cliente recebem automaticamente um e-mail de confirmaÃ§Ã£o',
+                      'âœ…&nbsp; Uma linha de cÃ³digo no seu site â€” ativo em menos de 2 minutos',
+                      'âœ…&nbsp; Defina a sua disponibilidade por dia e horÃ¡rio'],
         'cta':       'Ver uma demo ao vivo',
-        'price':     '<strong style="color:#333">7 dias gratuitos</strong> — sem cartão de crédito. Depois apenas €54,50/mês.',
+        'price':     '<strong style="color:#333">7 dias gratuitos</strong> â€” sem cartÃ£o de crÃ©dito. Depois apenas â‚¬20,00/mÃªs.',
         'sign':      'Com os melhores cumprimentos,',
-        'unsub':     'Recebe isto porque o seu negócio está listado publicamente online.',
-        'unsub_link':'Cancelar subscrição',
-        'subject':   'Os seus clientes ainda não podem marcar online em {domain}',
-        'subject_fu':'Seguimento — marcações online para {name}',
+        'unsub':     'Recebe isto porque o seu negÃ³cio estÃ¡ listado publicamente online.',
+        'unsub_link':'Cancelar subscriÃ§Ã£o',
+        'subject':   'Os seus clientes ainda nÃ£o podem marcar online em {domain}',
+        'subject_fu':'Seguimento â€” marcaÃ§Ãµes online para {name}',
     },
 }
 
@@ -473,44 +473,68 @@ def email_html(name, url, follow_up=False, city='', to_email='', lead_id=''):
     greeting = t['greeting'].format(name=clean_name) if clean_name else t['greeting'].format(name='')
     greeting = greeting.strip().rstrip(',').strip() + ',' if not clean_name and '{name}' in t['greeting'] else greeting
 
-    followup_html = (f'<p style="margin:0 0 16px;font-size:15px;color:#333">{t["followup"]}</p>'
-                     if follow_up else '')
-    bullets_html = ''.join(f'<tr><td style="padding:8px 0;font-size:14px;color:#555">{b}</td></tr>'
-                            for b in t['bullets'])
+    import re as _re
+    def _clean(b): return _re.sub(r'^.*?&nbsp;\s*', '', b)
+    bullets_html = ''.join(
+        f'<tr><td style="padding:9px 0;font-size:14px;color:rgba(255,255,255,.75)">'
+        f'<span style="color:#10b981;font-weight:700;margin-right:10px">âœ“</span>{_clean(b)}</td></tr>'
+        for b in t['bullets'])
 
     body = f"""<!DOCTYPE html><html><head><meta charset="UTF-8"></head>
-<body style="margin:0;padding:0;background:#f5f5f5;font-family:Arial,sans-serif">
+<body style="margin:0;padding:0;background:#0a0a0f;font-family:'Segoe UI',Arial,sans-serif">
 <table width="100%" cellpadding="0" cellspacing="0"><tr><td align="center" style="padding:30px 10px">
-<table width="580" style="background:#fff;border-radius:12px;overflow:hidden;box-shadow:0 2px 20px rgba(0,0,0,.08)">
-<tr><td style="background:linear-gradient(135deg,#10b981,#059669);padding:30px 40px">
-  <h1 style="color:#fff;margin:0;font-size:22px">AfspraakHost</h1>
-  <p style="color:rgba(255,255,255,.7);margin:6px 0 0;font-size:13px">{t['tagline']}</p>
+<table width="580" cellpadding="0" cellspacing="0" style="background:#111118;border-radius:16px;overflow:hidden;border:1px solid rgba(255,255,255,0.07)">
+
+<!-- HEADER -->
+<tr><td style="padding:32px 44px 28px;border-bottom:1px solid rgba(255,255,255,0.06)">
+  <table width="100%" cellpadding="0" cellspacing="0"><tr>
+    <td><span style="font-size:22px;font-weight:800;color:#10b981">Afspraak</span><span style="font-size:22px;font-weight:800;color:#34d399">Host</span></td>
+    <td align="right"><span style="font-size:11px;letter-spacing:2px;color:rgba(255,255,255,0.3)">{t['tagline'].upper()}</span></td>
+  </tr></table>
 </td></tr>
-<tr><td style="padding:36px 40px">
-  <p style="margin:0 0 16px;font-size:15px;color:#333">{greeting}</p>
-  {followup_html}
-  <p style="margin:0 0 16px;font-size:15px;color:#333">{t['intro'].format(domain=domain)}</p>
-  <p style="font-size:15px;color:#333;margin:0 0 20px">{t['hook']}</p>
-  <table style="margin:0 0 24px;width:100%">{bullets_html}</table>
-  <table cellpadding="0" cellspacing="0" style="margin:0 auto 28px"><tr>
-    <td style="background:linear-gradient(135deg,#10b981,#059669);border-radius:8px;padding:14px 32px">
-      <a href="{BASE_URL}/track/click?lid={lead_id}&ref={domain}" style="color:#fff;text-decoration:none;font-size:15px;font-weight:700">{t['cta']}</a>
+
+<!-- BODY -->
+<tr><td style="padding:36px 44px">
+  <p style="margin:0 0 20px;font-size:16px;color:rgba(255,255,255,0.85);line-height:1.5">{greeting}</p>
+  {(f'<p style="margin:0 0 20px;font-size:15px;color:rgba(255,255,255,0.6);line-height:1.6">{t["followup"]}</p>') if follow_up else ''}
+  <p style="margin:0 0 14px;font-size:15px;color:rgba(255,255,255,0.75);line-height:1.6">{t['intro'].format(domain=domain)}</p>
+  <p style="font-size:15px;color:rgba(255,255,255,0.6);margin:0 0 24px;line-height:1.6">{t['hook']}</p>
+
+  <!-- FEATURE BLOCK -->
+  <table width="100%" cellpadding="0" cellspacing="0" style="margin:0 0 32px;background:rgba(16,185,129,0.06);border:1px solid rgba(16,185,129,0.18);border-radius:12px;padding:4px 20px">
+    <tr><td><table width="100%" cellpadding="0" cellspacing="0">{bullets_html}</table></td></tr>
+  </table>
+
+  <!-- CTA BUTTON -->
+  <table cellpadding="0" cellspacing="0" style="margin:0 auto 32px"><tr>
+    <td style="background:linear-gradient(135deg,#10b981,#059669);border-radius:10px;padding:16px 40px;box-shadow:0 8px 24px rgba(16,185,129,0.35)">
+      <a href="{BASE_URL}/track/click?lid={lead_id}&ref={domain}" style="color:#fff;text-decoration:none;font-size:16px;font-weight:700;letter-spacing:0.3px">{t['cta']} â†’</a>
     </td>
   </tr></table>
-  <p style="font-size:14px;color:#888;margin:0 0 6px">{t['price']}</p>
-  <p style="font-size:15px;color:#333;margin:20px 0 0">{t['sign']}<br><strong>{SENDER_NAME}</strong><br>
-  <span style="color:#888;font-size:13px">AfspraakHost — <a href="{BASE_URL}" style="color:#10b981">{BASE_URL.replace('https://','').replace('http://','')}</a></span></p>
+
+  <!-- PRICE -->
+  <p style="font-size:13px;color:rgba(255,255,255,0.35);text-align:center;margin:0 0 32px">{t['price'].replace('<strong style="color:#333">','<strong style="color:#fff">').replace('</strong>','</strong>')}</p>
+
+  <!-- DIVIDER -->
+  <table width="100%" cellpadding="0" cellspacing="0"><tr><td style="border-top:1px solid rgba(255,255,255,0.07);padding-top:24px">
+    <p style="margin:0;font-size:14px;color:rgba(255,255,255,0.5);line-height:1.8">{t['sign']}<br>
+    <strong style="color:#fff;font-size:15px">{SENDER_NAME}</strong><br>
+    <span style="color:rgba(255,255,255,0.3);font-size:13px">AfspraakHost &mdash; <a href="https://afspraakhost.nl" style="color:#10b981;text-decoration:none">afspraakhost.nl</a></span></p>
+  </td></tr></table>
 </td></tr>
-<tr><td style="padding:16px 40px;border-top:1px solid #eee">
-  <p style="font-size:11px;color:#aaa;margin:0">{t['unsub']}
-    <a href="{BASE_URL}/unsubscribe?email={to_email}" style="color:#aaa">{t['unsub_link']}</a>
+
+<!-- FOOTER -->
+<tr><td style="padding:16px 44px;border-top:1px solid rgba(255,255,255,0.05)">
+  <p style="font-size:11px;color:rgba(255,255,255,0.2);margin:0">{t['unsub']}
+    <a href="{BASE_URL}/unsubscribe?email={to_email}" style="color:rgba(255,255,255,0.3);text-decoration:underline">{t['unsub_link']}</a>
   </p>
 </td></tr>
+
 </table></td></tr></table>
 </body></html>"""
     return subject, body
 
-# ── Email verzenden ─────────────────────────────────────────
+# â”€â”€ Email verzenden â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def send_email(to_email, business_name, url, follow_up=False, city='', lead_id=''):
     gmail, pwd = _creds()
     if not gmail or not pwd:
@@ -528,13 +552,13 @@ def send_email(to_email, business_name, url, follow_up=False, city='', lead_id='
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as s:
             s.login(gmail, pwd)
             s.sendmail(gmail, to_email, msg.as_string())
-        print(f'[MAIL ✓] {to_email} — {business_name}')
+        print(f'[MAIL âœ“] {to_email} â€” {business_name}')
         return True
     except Exception as e:
-        print(f'[MAIL ✗] {to_email} — {e}')
+        print(f'[MAIL âœ—] {to_email} â€” {e}')
         return False
 
-# ── Pipeline ────────────────────────────────────────────────
+# â”€â”€ Pipeline â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 def find_and_queue_leads(niche=None, city=None, count=10):
     niche_key  = niche if niche in NICHES else random.choice(NICHE_KEYS)
     niche_name = NICHES.get(niche_key, niche_key)
@@ -549,7 +573,7 @@ def find_and_queue_leads(niche=None, city=None, count=10):
         time.sleep(random.uniform(1.5, 3.0))
         booking = has_booking_system(url)
         if booking:
-            print(f'  [SKIP] {url} — al een boekingssysteem')
+            print(f'  [SKIP] {url} â€” al een boekingssysteem')
             c.execute('INSERT OR IGNORE INTO leads (url,niche,city,has_booking,created_at) VALUES (?,?,?,1,?)',
                 (url, niche_name, city, datetime.now().isoformat()))
             c.commit()
@@ -626,7 +650,7 @@ def get_stats():
     try:
         cc = sqlite3.connect(os.path.join(os.path.dirname(os.path.abspath(__file__)), 'customers.db'))
         active = cc.execute('SELECT COUNT(*) FROM customers WHERE active=1').fetchone()[0]
-        mrr    = active * 54.5
+        mrr    = active * 20
         cc.close()
     except: active=0; mrr=0
     c.close()
@@ -641,7 +665,7 @@ def daily_run():
     print(f'\n[AUTO] Run gestart: {datetime.now().strftime("%d/%m/%Y %H:%M")}')
     cities_today = random.sample(STEDEN, min(50, len(STEDEN)))
     niches_today = random.sample(NICHE_KEYS, min(15, len(NICHE_KEYS)))
-    print(f'[AUTO] {len(cities_today)} steden × {len(niches_today)} niches')
+    print(f'[AUTO] {len(cities_today)} steden Ã— {len(niches_today)} niches')
     for i, city in enumerate(cities_today):
         niche = niches_today[i % len(niches_today)]
         find_and_queue_leads(niche=niche, city=city, count=20)
@@ -650,8 +674,10 @@ def daily_run():
     send_followups()
     s = get_stats()
     print(f'\n[RAPPORT] Leads: {s["leads_no_booking"]} zonder booking | '
-          f'Gemaild: {s["emails_sent"]} | Klanten: {s["active_customers"]} | MRR: €{s["mrr"]}')
+          f'Gemaild: {s["emails_sent"]} | Klanten: {s["active_customers"]} | MRR: â‚¬{s["mrr"]}')
     return s
 
 if __name__ == '__main__':
     daily_run()
+
+
