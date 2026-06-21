@@ -530,7 +530,8 @@ h2{{color:#333;margin-bottom:12px}}p{{color:#888;font-size:14px}}</style></head>
 
 @app.route('/demo')
 def demo():
-    return send_from_directory('static', 'demo.html')
+    ref = request.args.get('ref', '')
+    return redirect(f'/?ref={ref}' if ref else '/')
 
 # ── Trial expiring reminder ────────────────────────────────
 def send_trial_expiring_email(email, business_name):
