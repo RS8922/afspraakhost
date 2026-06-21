@@ -1,4 +1,5 @@
 from flask import Flask, request, jsonify, send_from_directory, redirect
+from html import escape as html_escape
 import os, uuid, sqlite3, smtplib
 from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
@@ -53,6 +54,10 @@ def init_db():
     )''')
     try: c.execute('ALTER TABLE customers ADD COLUMN trial_ends_at TEXT')
     except: pass
+    try: c.execute('ALTER TABLE customers ADD COLUMN email_clicked INTEGER DEFAULT 0')
+    except: pass
+    try: c.execute('ALTER TABLE customers ADD COLUMN email_clicked_at TEXT')
+    except: pass
     c.commit(); c.close()
 
 init_db()
@@ -105,7 +110,7 @@ def send_welcome_email(email, api_key, business_name, trial=False):
     {trial_block}
     <p style="margin-top:12px">Open je dashboard om je beschikbaarheid in te stellen en de widget op je website te plaatsen:</p>
     <div style="text-align:center;margin:24px 0">
-      <a href="{BASE_URL}/dashboard?key={api_key}" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">Open mijn dashboard</a>
+      <a href="{BASE_URL}/track/click?key={api_key}" style="background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:14px 32px;border-radius:8px;text-decoration:none;font-weight:700;font-size:15px">Open mijn dashboard</a>
     </div>
     {iban_block}
     <p style="color:#888;font-size:13px;margin-top:20px">Vragen? Mail naar spronken1234@gmail.com</p>
@@ -113,7 +118,7 @@ def send_welcome_email(email, api_key, business_name, trial=False):
 </div>"""
     msg = MIMEMultipart('alternative')
     msg['Subject'] = 'Je AfspraakHost proefperiode is gestart!' if trial else 'Je AfspraakHost account is geactiveerd!'
-    msg['From']    = gmail
+    msg['From']    = f'{os.getenv("SENDER_NAME", "Robin")} <{gmail}>'
     msg['To']      = email
     msg.attach(MIMEText(body, 'html'))
     import threading
@@ -157,7 +162,7 @@ def send_appointment_email(business_email, customer_name, customer_email, date, 
 </div>"""
     msg_biz = MIMEMultipart('alternative')
     msg_biz['Subject'] = f'Nieuwe afspraak — {customer_name} op {date} om {time}'
-    msg_biz['From']    = gmail
+    msg_biz['From']    = f'{os.getenv("SENDER_NAME", "Robin")} <{gmail}>'
     msg_biz['To']      = business_email
     msg_biz.attach(MIMEText(body_biz, 'html'))
     # Email to customer
@@ -179,7 +184,7 @@ def send_appointment_email(business_email, customer_name, customer_email, date, 
 </div>"""
     msg_cust = MIMEMultipart('alternative')
     msg_cust['Subject'] = f'Afspraakbevestiging — {date} om {time}'
-    msg_cust['From']    = gmail
+    msg_cust['From']    = f'{os.getenv("SENDER_NAME", "Robin")} <{gmail}>'
     msg_cust['To']      = customer_email
     msg_cust.attach(MIMEText(body_cust, 'html'))
     import threading
@@ -228,15 +233,22 @@ def book():
 
 @app.route('/track/click')
 def track_click():
+    key = request.args.get('key', '')
     lid = request.args.get('lid', '')
     ref = request.args.get('ref', '')
+    if key:
+        c = db()
+        c.execute("UPDATE customers SET email_clicked=COALESCE(email_clicked,0)+1, email_clicked_at=? WHERE api_key=?",
+                  (datetime.now().isoformat(), key))
+        c.commit(); c.close()
+        return redirect(f'/dashboard?key={key}')
     if lid:
         try:
             oc = sqlite3.connect(OUTREACH_DB)
             oc.execute('UPDATE leads SET link_clicks=COALESCE(link_clicks,0)+1 WHERE id=?', (lid,))
             oc.commit(); oc.close()
         except: pass
-    dest = BASE_URL + (f'?ref={ref}' if ref else '')
+    dest = BASE_URL + '/demo' + (f'?ref={ref}' if ref else '')
     return redirect(dest, 302)
 
 @app.route('/widget.js')
@@ -316,7 +328,8 @@ def admin_stats():
     trial  = c.execute("SELECT COUNT(*) FROM customers WHERE active=1 AND trial_ends_at IS NOT NULL AND trial_ends_at > datetime('now')").fetchone()[0]
     apts   = c.execute('SELECT COUNT(*) FROM appointments').fetchone()[0]
     today  = c.execute("SELECT COUNT(*) FROM appointments WHERE created_at>=date('now')").fetchone()[0]
-    custs  = c.execute('SELECT email,business_name,active,api_key,created_at,trial_ends_at FROM customers ORDER BY created_at DESC').fetchall()
+    custs  = c.execute('SELECT email,business_name,active,api_key,created_at,trial_ends_at,email_clicked FROM customers ORDER BY created_at DESC').fetchall()
+    email_clicks = c.execute("SELECT COALESCE(SUM(email_clicked),0) FROM customers").fetchone()[0]
     c.close()
     emails_sent = total_clicks = leads_clicked = 0
     try:
@@ -326,13 +339,14 @@ def admin_stats():
         leads_clicked = oc.execute('SELECT COUNT(*) FROM leads WHERE link_clicks>0').fetchone()[0]
         oc.close()
     except: pass
-    mrr = active * 54.5
+    mrr = (active - trial) * 54.5
     now = datetime.now().isoformat()
     return jsonify({
         'total_customers': total, 'active_customers': active, 'trial_customers': trial,
         'mrr': mrr, 'arr': mrr * 12,
         'total_appointments': apts, 'appointments_today': today,
         'emails_sent': emails_sent, 'total_clicks': total_clicks, 'leads_clicked': leads_clicked,
+        'email_clicks': email_clicks,
         'customers': [{
             **dict(r),
             'is_trial': bool(r['trial_ends_at'] and r['active'] and r['trial_ends_at'] > now)
@@ -348,10 +362,11 @@ def live_stats():
     active = c.execute('SELECT COUNT(*) FROM customers WHERE active=1').fetchone()[0]
     apts   = c.execute('SELECT COUNT(*) FROM appointments').fetchone()[0]
     today  = c.execute("SELECT COUNT(*) FROM appointments WHERE created_at>=date('now')").fetchone()[0]
+    trial  = c.execute("SELECT COUNT(*) FROM customers WHERE active=1 AND trial_ends_at IS NOT NULL AND trial_ends_at > datetime('now')").fetchone()[0]
     custs  = c.execute('SELECT email,business_name,active,created_at FROM customers ORDER BY created_at DESC').fetchall()
     days   = c.execute("SELECT date(created_at) as d, COUNT(*) as n FROM appointments GROUP BY date(created_at) ORDER BY date(created_at) DESC LIMIT 14").fetchall()
     c.close()
-    mrr = active * 54.5
+    mrr = (active - trial) * 54.5
     return jsonify({
         'active': active, 'total': total, 'mrr': mrr, 'arr': mrr * 12,
         'appointments_total': apts, 'appointments_today': today,
@@ -511,7 +526,86 @@ def unsubscribe():
 .box{{background:#fff;border-radius:12px;padding:40px;text-align:center;max-width:400px;box-shadow:0 2px 20px rgba(0,0,0,.08)}}
 h2{{color:#333;margin-bottom:12px}}p{{color:#888;font-size:14px}}</style></head>
 <body><div class="box"><h2>Je bent uitgeschreven</h2>
-<p>{email} ontvangt geen e-mails meer van AfspraakHost.</p></div></body></html>'''
+<p>{html_escape(email)} ontvangt geen e-mails meer van AfspraakHost.</p></div></body></html>'''
+
+@app.route('/demo')
+def demo():
+    return send_from_directory('static', 'demo.html')
+
+# ── Trial expiring reminder ────────────────────────────────
+def send_trial_expiring_email(email, business_name):
+    gmail = os.getenv('GMAIL_ADDRESS', '')
+    pwd   = os.getenv('GMAIL_APP_PASSWORD', '')
+    if not gmail or not pwd: return
+    body = f"""
+<div style="font-family:Arial,sans-serif;max-width:600px;margin:0 auto;color:#333">
+  <div style="background:linear-gradient(135deg,#10b981,#059669);padding:32px;border-radius:12px 12px 0 0;text-align:center">
+    <h1 style="color:#fff;margin:0;font-size:24px">Nog 2 dagen proefperiode!</h1>
+  </div>
+  <div style="background:#f9f9f9;padding:32px;border-radius:0 0 12px 12px">
+    <p>Hallo{' ' + business_name if business_name else ''},</p>
+    <p>Je gratis proefperiode bij AfspraakHost eindigt over <strong>2 dagen</strong>.</p>
+    <p>Wil je blijven werken met online afspraken? Maak dan €54,50 over:</p>
+    <div style="background:#e8f5e9;border-radius:8px;padding:20px;margin:20px 0">
+      <p style="margin:4px 0;font-size:15px"><strong>IBAN:</strong> NL26 REVO 1741 4708 03</p>
+      <p style="margin:4px 0;font-size:15px"><strong>Naam:</strong> R. Spronken</p>
+      <p style="margin:4px 0;font-size:15px"><strong>Omschrijving:</strong> {email}</p>
+      <p style="margin:4px 0;font-size:15px"><strong>Bedrag:</strong> €54,50/maand</p>
+    </div>
+    <p>Na ontvangst wordt je account direct verlengd. Geen creditcard, geen abonnement — gewoon overmaken.</p>
+    <p style="color:#888;font-size:13px">Vragen? Mail naar spronken1234@gmail.com</p>
+  </div>
+</div>"""
+    msg = MIMEMultipart('alternative')
+    msg['Subject'] = 'Je AfspraakHost proefperiode eindigt over 2 dagen'
+    msg['From']    = f'{os.getenv("SENDER_NAME", "Robin")} <{gmail}>'
+    msg['To']      = email
+    msg.attach(MIMEText(body, 'html'))
+    import threading
+    def _send():
+        try:
+            with smtplib.SMTP('smtp.gmail.com', 587, timeout=15) as s:
+                s.ehlo(); s.starttls(); s.ehlo()
+                s.login(gmail, pwd)
+                s.sendmail(gmail, email, msg.as_string())
+                print(f'[TRIAL-EXPIRING] {email}'); return
+        except Exception:
+            try:
+                with smtplib.SMTP_SSL('smtp.gmail.com', 465, timeout=15) as s:
+                    s.login(gmail, pwd)
+                    s.sendmail(gmail, email, msg.as_string())
+                    print(f'[TRIAL-EXPIRING] {email}')
+            except Exception as e:
+                print(f'[TRIAL-EXPIRING FAIL] {email}: {e}')
+    threading.Thread(target=_send, daemon=True).start()
+
+def check_expiring_trials():
+    import time as _time
+    while True:
+        try:
+            c = db()
+            soon = (datetime.now() + timedelta(days=2, hours=1)).isoformat()
+            cutoff = (datetime.now() + timedelta(days=2)).isoformat()
+            rows = c.execute(
+                "SELECT email,business_name FROM customers WHERE active=1 AND trial_ends_at IS NOT NULL AND trial_ends_at <= ? AND trial_ends_at > ? AND (trial_expiring_sent IS NULL OR trial_expiring_sent=0)",
+                (soon, datetime.now().isoformat())).fetchall()
+            for r in rows:
+                send_trial_expiring_email(r['email'], r['business_name'] or '')
+                c.execute("UPDATE customers SET trial_expiring_sent=1 WHERE email=?", (r['email'],))
+            c.commit(); c.close()
+        except Exception as e:
+            print(f'[TRIAL-CHECK ERROR] {e}')
+        _time.sleep(3600)
+
+import threading as _threading
+def _ensure_trial_expiring_col():
+    try:
+        c = db()
+        c.execute('ALTER TABLE customers ADD COLUMN trial_expiring_sent INTEGER DEFAULT 0')
+        c.commit(); c.close()
+    except: pass
+_ensure_trial_expiring_col()
+_threading.Thread(target=check_expiring_trials, daemon=True).start()
 
 if __name__ == '__main__':
     port = int(os.getenv('PORT', 8082))

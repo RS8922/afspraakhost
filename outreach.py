@@ -19,7 +19,11 @@ from urllib.parse import urljoin, urlparse
 from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
-load_dotenv()
+load_dotenv(override=True)
+
+def _creds():
+    load_dotenv(override=True)
+    return os.getenv('GMAIL_ADDRESS', ''), os.getenv('GMAIL_APP_PASSWORD', '')
 
 GMAIL_ADDRESS  = os.getenv('GMAIL_ADDRESS', '')
 GMAIL_PASSWORD = os.getenv('GMAIL_APP_PASSWORD', '')
@@ -508,20 +512,22 @@ def email_html(name, url, follow_up=False, city='', to_email='', lead_id=''):
 
 # ── Email verzenden ─────────────────────────────────────────
 def send_email(to_email, business_name, url, follow_up=False, city='', lead_id=''):
-    if not GMAIL_ADDRESS or not GMAIL_PASSWORD:
+    gmail, pwd = _creds()
+    if not gmail or not pwd:
         print('[MAIL] Geen Gmail credentials in .env')
         return False
+    sender = os.getenv('SENDER_NAME', 'Robin')
     try:
         subject, html = email_html(business_name, url, follow_up, city=city, to_email=to_email, lead_id=lead_id)
         msg = MIMEMultipart('alternative')
         msg['Subject'] = subject
-        msg['From']    = f'{SENDER_NAME} <{GMAIL_ADDRESS}>'
+        msg['From']    = f'{sender} <{gmail}>'
         msg['To']      = to_email
-        msg['Reply-To']= GMAIL_ADDRESS
+        msg['Reply-To']= gmail
         msg.attach(MIMEText(html, 'html'))
         with smtplib.SMTP_SSL('smtp.gmail.com', 465) as s:
-            s.login(GMAIL_ADDRESS, GMAIL_PASSWORD)
-            s.sendmail(GMAIL_ADDRESS, to_email, msg.as_string())
+            s.login(gmail, pwd)
+            s.sendmail(gmail, to_email, msg.as_string())
         print(f'[MAIL ✓] {to_email} — {business_name}')
         return True
     except Exception as e:
@@ -565,6 +571,10 @@ def send_cold_emails(max_per_day=200):
     c = db()
     leads = c.execute('''SELECT * FROM leads
         WHERE email != '' AND email_sent=0 AND has_booking=0
+        AND email LIKE '%@%.%'
+        AND email NOT LIKE '%.png%' AND email NOT LIKE '%.jpg%'
+        AND email NOT LIKE '%.gif%' AND email NOT LIKE '%.svg%'
+        AND LENGTH(email) <= 100
         ORDER BY created_at ASC LIMIT ?''', (max_per_day,)).fetchall()
     sent = 0
     for lead in leads:
@@ -587,7 +597,7 @@ def send_followups():
     leads = c.execute('''SELECT * FROM leads
         WHERE email_sent=1 AND followup_sent=0 AND replied=0
         AND email_sent_at < ? AND email != ''
-        LIMIT 10''', (cutoff,)).fetchall()
+        LIMIT 50''', (cutoff,)).fetchall()
     sent = 0
     for lead in leads:
         lang = detect_language(lead['city'] or '')

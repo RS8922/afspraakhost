@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AfspraakHost — Live Demo</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',system-ui,sans-serif;background:#0a0a0f;color:#fff;min-height:100vh}
+nav{display:flex;align-items:center;justify-content:space-between;padding:18px 60px;
+  border-bottom:1px solid rgba(255,255,255,.06);background:rgba(10,10,15,.95);backdrop-filter:blur(10px)}
+.logo{font-size:22px;font-weight:800;background:linear-gradient(90deg,#10b981,#34d399);
+  -webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.nav-cta{background:#10b981;color:#fff;padding:10px 22px;border-radius:8px;
+  text-decoration:none;font-weight:600;font-size:14px}
+.hero{text-align:center;padding:60px 20px 40px}
+.badge{display:inline-block;background:rgba(16,185,129,.12);border:1px solid rgba(16,185,129,.3);
+  color:#10b981;padding:6px 16px;border-radius:20px;font-size:12px;letter-spacing:2px;margin-bottom:20px}
+h1{font-size:42px;font-weight:900;margin-bottom:14px}
+h1 span{background:linear-gradient(90deg,#10b981,#34d399);-webkit-background-clip:text;-webkit-text-fill-color:transparent}
+.sub{font-size:17px;color:rgba(255,255,255,.5);margin-bottom:48px}
+.demo-wrap{display:flex;justify-content:center;gap:48px;align-items:flex-start;
+  max-width:1100px;margin:0 auto;padding:0 20px 80px;flex-wrap:wrap}
+/* Simulated website */
+.demo-site{flex:1;min-width:300px;max-width:520px}
+.site-bar{background:#1a2e1a;border-radius:12px 12px 0 0;padding:12px 18px;
+  display:flex;align-items:center;gap:8px;border:1px solid rgba(16,185,129,.15)}
+.dot{width:10px;height:10px;border-radius:50%}
+.url-bar{flex:1;background:#111;border-radius:6px;padding:5px 12px;
+  font-size:12px;color:rgba(255,255,255,.3);margin:0 10px}
+.site-body{background:linear-gradient(135deg,#f0fdf4,#ecfdf5);border-radius:0 0 12px 12px;
+  padding:32px;color:#222;border:1px solid rgba(16,185,129,.15);border-top:none}
+.site-body h2{font-size:22px;color:#052e16;margin-bottom:6px}
+.site-body p{color:#666;font-size:13px;line-height:1.6;margin-bottom:20px}
+/* Booking widget */
+.widget{background:#fff;border-radius:12px;box-shadow:0 4px 24px rgba(0,0,0,.1);overflow:hidden}
+.widget-hdr{background:linear-gradient(135deg,#10b981,#059669);padding:16px 20px;color:#fff}
+.widget-hdr h3{font-size:15px;font-weight:700;margin-bottom:2px}
+.widget-hdr p{font-size:12px;opacity:.8}
+.widget-body{padding:20px}
+/* Step indicators */
+.steps-row{display:flex;gap:0;margin-bottom:20px}
+.step-item{flex:1;text-align:center;font-size:11px;font-weight:600;padding:8px 4px;
+  color:#aaa;border-bottom:2px solid #eee;transition:.2s}
+.step-item.active{color:#10b981;border-color:#10b981}
+.step-item.done{color:#059669;border-color:#10b981}
+/* Date selector */
+.date-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-bottom:16px}
+.day-hdr{text-align:center;font-size:10px;color:#aaa;font-weight:600;padding:4px 0}
+.day-btn{text-align:center;padding:8px 4px;border-radius:6px;font-size:12px;cursor:pointer;
+  border:1px solid transparent;color:#333;transition:.15s}
+.day-btn:hover{background:#f0fdf4;border-color:#10b981}
+.day-btn.selected{background:#10b981;color:#fff;font-weight:700}
+.day-btn.disabled{color:#ddd;cursor:default;pointer-events:none}
+/* Time slots */
+.slots-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:16px}
+.slot-btn{padding:10px;border-radius:8px;border:1px solid #10b981;background:rgba(16,185,129,.06);
+  color:#059669;font-size:13px;font-weight:600;cursor:pointer;text-align:center;transition:.15s}
+.slot-btn:hover,.slot-btn.selected{background:#10b981;color:#fff}
+/* Form */
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:11px;font-weight:600;color:#888;margin-bottom:4px;letter-spacing:.5px}
+.form-group input{width:100%;border:1px solid #e0e0e0;border-radius:8px;padding:10px 12px;
+  font-size:13px;color:#333;outline:none;font-family:inherit}
+.form-group input:focus{border-color:#10b981}
+.book-btn{width:100%;background:linear-gradient(135deg,#10b981,#059669);color:#fff;
+  border:none;padding:14px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;transition:opacity .2s}
+.book-btn:hover{opacity:.9}
+.book-btn:disabled{opacity:.5;cursor:default}
+.back-link{font-size:12px;color:#888;cursor:pointer;margin-bottom:14px;display:block}
+.back-link:hover{color:#10b981}
+/* Success */
+.success-box{text-align:center;padding:20px}
+.success-icon{width:60px;height:60px;border-radius:50%;background:#10b981;
+  display:flex;align-items:center;justify-content:center;margin:0 auto 16px;font-size:26px}
+.success-box h3{color:#052e16;font-size:18px;margin-bottom:8px}
+.success-box p{color:#666;font-size:13px;line-height:1.6}
+.success-detail{background:#f0fdf4;border-radius:8px;padding:14px;margin:14px 0;text-align:left}
+.success-detail p{margin:4px 0;font-size:13px;color:#333}
+/* Info panel */
+.demo-info{flex:1;min-width:260px;max-width:420px;padding-top:8px}
+.info-card{background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);
+  border-radius:14px;padding:24px;margin-bottom:16px}
+.info-card h3{font-size:15px;font-weight:700;margin-bottom:12px;color:rgba(255,255,255,.85)}
+.feature{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.feature-icon{width:32px;height:32px;border-radius:8px;background:rgba(16,185,129,.12);
+  display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:16px}
+.feature-text{font-size:13px;color:rgba(255,255,255,.55);line-height:1.5}
+.feature-text strong{color:#fff;display:block;font-size:13px}
+.cta-card{background:linear-gradient(135deg,rgba(16,185,129,.12),rgba(5,150,105,.08));
+  border:1px solid rgba(16,185,129,.3);border-radius:14px;padding:28px;text-align:center}
+.cta-card h3{font-size:20px;margin-bottom:8px}
+.cta-card p{font-size:13px;color:rgba(255,255,255,.5);margin-bottom:20px}
+.cta-btn{background:linear-gradient(135deg,#10b981,#059669);color:#fff;padding:14px 32px;
+  border-radius:10px;font-size:15px;font-weight:700;border:none;cursor:pointer;
+  text-decoration:none;display:inline-block}
+.cta-price{margin-top:10px;font-size:12px;color:rgba(255,255,255,.35)}
+</style>
+</head>
+<body>
+<nav>
+  <div class="logo">AfspraakHost</div>
+  <a href="/" class="nav-cta">Gratis starten →</a>
+</nav>
+
+<div class="hero">
+  <div class="badge">LIVE DEMO</div>
+  <h1>Zo werkt <span>online boeken</span> voor uw klanten</h1>
+  <p class="sub">Boek hieronder een proef-afspraak — dit is precies hoe uw klanten het ervaren op uw website.</p>
+</div>
+
+<div class="demo-wrap">
+  <!-- Simulated booking widget -->
+  <div class="demo-site">
+    <div class="site-bar">
+      <div class="dot" style="background:#ff5f57"></div>
+      <div class="dot" style="background:#ffbd2e"></div>
+      <div class="dot" style="background:#28c840"></div>
+      <div class="url-bar">mijnkapsalon.nl/afspraken</div>
+    </div>
+    <div class="site-body">
+      <h2>Kapsalon De Knip</h2>
+      <p>Boek eenvoudig een afspraak. Kies een datum en tijdstip dat u uitkomt.</p>
+
+      <div class="widget">
+        <div class="widget-hdr">
+          <h3>Afspraak inplannen</h3>
+          <p>Kies datum → tijdstip → uw gegevens</p>
+        </div>
+        <div class="widget-body" id="widget-body">
+          <!-- Steps -->
+          <div class="steps-row">
+            <div class="step-item active" id="step1-ind">1. Datum</div>
+            <div class="step-item" id="step2-ind">2. Tijdstip</div>
+            <div class="step-item" id="step3-ind">3. Gegevens</div>
+          </div>
+          <!-- Step 1: Date -->
+          <div id="step1">
+            <div class="date-grid" id="date-grid"></div>
+          </div>
+          <!-- Step 2: Time -->
+          <div id="step2" style="display:none">
+            <span class="back-link" onclick="goStep(1)">← Andere datum</span>
+            <p style="font-size:12px;color:#888;margin-bottom:12px">Beschikbare tijdsloten op <strong id="selected-date-label"></strong></p>
+            <div class="slots-grid" id="slots-grid"></div>
+          </div>
+          <!-- Step 3: Form -->
+          <div id="step3" style="display:none">
+            <span class="back-link" onclick="goStep(2)">← Ander tijdstip</span>
+            <p style="font-size:12px;color:#888;margin-bottom:14px">Afspraak: <strong id="appt-summary"></strong></p>
+            <div class="form-group"><label>UW NAAM</label><input id="f-name" placeholder="Jan de Vries"></div>
+            <div class="form-group"><label>E-MAILADRES</label><input id="f-email" type="email" placeholder="jan@email.nl"></div>
+            <div class="form-group"><label>TELEFOONNUMMER (optioneel)</label><input id="f-phone" placeholder="+31 6 12345678"></div>
+            <button class="book-btn" onclick="bookAppt()">Afspraak bevestigen →</button>
+          </div>
+          <!-- Success -->
+          <div id="step4" style="display:none">
+            <div class="success-box">
+              <div class="success-icon">✓</div>
+              <h3>Afspraak bevestigd!</h3>
+              <p>U ontvangt een bevestiging per e-mail.</p>
+              <div class="success-detail">
+                <p><strong>Datum:</strong> <span id="conf-date"></span></p>
+                <p><strong>Tijdstip:</strong> <span id="conf-time"></span></p>
+                <p><strong>Naam:</strong> <span id="conf-name"></span></p>
+              </div>
+              <p style="font-size:12px;color:#aaa">Dit is een demo — er is geen echte afspraak gemaakt.</p>
+              <button class="book-btn" style="margin-top:14px" onclick="resetDemo()">Opnieuw proberen</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Info panel -->
+  <div class="demo-info">
+    <div class="info-card">
+      <h3>Waarom online afspraken?</h3>
+      <div class="feature">
+        <div class="feature-icon">🌙</div>
+        <div class="feature-text"><strong>24/7 beschikbaar</strong>Klanten boeken ook 's avonds en in het weekend</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📧</div>
+        <div class="feature-text"><strong>Automatische bevestiging</strong>U én de klant krijgen direct een e-mail</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">⚡</div>
+        <div class="feature-text"><strong>2 minuten installatie</strong>Eén regel code op uw website — klaar</div>
+      </div>
+      <div class="feature">
+        <div class="feature-icon">📅</div>
+        <div class="feature-text"><strong>Eigen beschikbaarheid</strong>U bepaalt welke dagen en tijden beschikbaar zijn</div>
+      </div>
+    </div>
+
+    <div class="cta-card">
+      <h3>Installeer op uw website</h3>
+      <p>Eén regel code — binnen 2 minuten live. 7 dagen gratis proberen.</p>
+      <a href="/api/checkout" class="cta-btn">Gratis starten →</a>
+      <div class="cta-price">Daarna €54,50/maand · Geen creditcard</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const DAYS = ['Ma','Di','Wo','Do','Vr','Za','Zo'];
+const MONTHS = ['jan','feb','mrt','apr','mei','jun','jul','aug','sep','okt','nov','dec'];
+const TIMES = ['09:00','09:30','10:00','10:30','11:00','11:30','13:00','13:30','14:00','14:30','15:00','15:30','16:00'];
+const BOOKED = {}; // demo: no pre-booked slots
+
+let selectedDate = null, selectedTime = null, currentStep = 1;
+
+function buildCalendar(){
+  const grid = document.getElementById('date-grid');
+  const today = new Date();
+  let html = DAYS.map(d=>`<div class="day-hdr">${d}</div>`).join('');
+  // Start from today's Monday or today
+  const start = new Date(today);
+  const dayOfWeek = (today.getDay()+6)%7; // 0=Mon
+  start.setDate(today.getDate() - dayOfWeek);
+  // Show 5 weeks
+  for(let i=0; i<35; i++){
+    const d = new Date(start);
+    d.setDate(start.getDate()+i);
+    const isPast = d < new Date(today.toDateString());
+    const key = d.toISOString().split('T')[0];
+    const isWeekend = d.getDay()===0||d.getDay()===6;
+    const disabled = isPast||isWeekend;
+    html += `<div class="day-btn${disabled?' disabled':''}" onclick="selectDate('${key}',this)" data-date="${key}">${d.getDate()}</div>`;
+  }
+  grid.innerHTML = html;
+}
+
+function selectDate(key, el){
+  document.querySelectorAll('.day-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedDate = key;
+  const d = new Date(key+'T00:00:00');
+  document.getElementById('selected-date-label').textContent = d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();
+  goStep(2);
+  buildSlots(key);
+}
+
+function buildSlots(key){
+  const booked = BOOKED[key]||[];
+  // Remove 1 random slot to make it look real
+  const removed = TIMES[Math.floor(Math.random()*TIMES.length)];
+  const available = TIMES.filter(t=>t!==removed&&!booked.includes(t));
+  document.getElementById('slots-grid').innerHTML = available.map(t=>
+    `<div class="slot-btn" onclick="selectTime('${t}',this)">${t}</div>`
+  ).join('');
+}
+
+function selectTime(t, el){
+  document.querySelectorAll('.slot-btn').forEach(b=>b.classList.remove('selected'));
+  el.classList.add('selected');
+  selectedTime = t;
+  const d = new Date(selectedDate+'T00:00:00');
+  document.getElementById('appt-summary').textContent =
+    d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear()+' om '+t;
+  setTimeout(()=>goStep(3), 200);
+}
+
+function goStep(n){
+  currentStep = n;
+  [1,2,3,4].forEach(i=>{
+    const el = document.getElementById('step'+i);
+    if(el) el.style.display = i===n ? 'block' : 'none';
+    const ind = document.getElementById('step'+i+'-ind');
+    if(ind){
+      ind.className = 'step-item'+(i===n?' active':i<n?' done':'');
+    }
+  });
+}
+
+function bookAppt(){
+  const name = document.getElementById('f-name').value.trim();
+  const email = document.getElementById('f-email').value.trim();
+  if(!name||!email){alert('Vul uw naam en e-mailadres in.'); return;}
+  const d = new Date(selectedDate+'T00:00:00');
+  document.getElementById('conf-date').textContent = d.getDate()+' '+MONTHS[d.getMonth()]+' '+d.getFullYear();
+  document.getElementById('conf-time').textContent = selectedTime;
+  document.getElementById('conf-name').textContent = name;
+  // Update step indicators
+  ['step1-ind','step2-ind','step3-ind'].forEach(id=>{
+    document.getElementById(id).className='step-item done';
+  });
+  goStep(4);
+}
+
+function resetDemo(){
+  selectedDate=null; selectedTime=null;
+  document.getElementById('f-name').value='';
+  document.getElementById('f-email').value='';
+  document.getElementById('f-phone').value='';
+  buildCalendar();
+  goStep(1);
+}
+
+buildCalendar();
+</script>
+</body>
+</html>
